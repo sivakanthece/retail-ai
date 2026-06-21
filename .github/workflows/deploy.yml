@@ -52,7 +52,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push to Hugging Face Space (exclude large model files)
+      - name: Push to Hugging Face Space (history-free, no large files)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE: ${{ secrets.HF_SPACE }}   # e.g. YourUsername/retail-ai
@@ -60,15 +60,19 @@ jobs:
           git config --global user.email "ci@retail-ai"
           git config --global user.name "Retail AI CI"
 
-          # Remove large model weights from the HF push (they are downloaded at build time)
-          git rm --cached backend/best.pt 2>/dev/null || true
-          git rm --cached backend/*.pt 2>/dev/null || true
+          # Create a brand-new orphan branch with only the current file tree.
+          # This avoids pushing git history that contains large model files.
+          git checkout --orphan hf-deploy
 
-          # Commit the removal if anything changed
-          git diff --cached --quiet || git commit -m "chore: exclude model weights from HF push"
+          # Remove any .pt/.onnx model files from this snapshot
+          find . -name "*.pt" -o -name "*.onnx" | xargs git rm --cached -f 2>/dev/null || true
+          find . -name "*.pt" -o -name "*.onnx" | xargs rm -f 2>/dev/null || true
+
+          git add -A
+          git commit -m "deploy: $(date -u '+%Y-%m-%d %H:%M') — ${GITHUB_SHA::7}"
 
           git remote add hf https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}
-          git push hf main --force
+          git push hf hf-deploy:main --force
 
   # ── Option B: Deploy to a VPS / cloud server via SSH ──────────────────────
   deploy-server:

@@ -1,0 +1,7 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "editor.formatOnSave": true,
+  "[python]": { "editor.defaultFormatter": "ms-python.python" },
+  "files.exclude": { "**/__pycache__": true, "**/*.pyc": true }
+}

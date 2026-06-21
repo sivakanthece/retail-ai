@@ -1,0 +1,66 @@
+# ── Secrets & environment ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── Node / React ──────────────────────────────────────────────────────────────
+node_modules/
+frontend/build/
+frontend/dist/
+.npm/
+*.log
+npm-debug.log*
+
+# ── Database & uploads ────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+backend/uploads/
+backend/temp_uploads/
+
+# ── ML model weights (large binaries — store in HF Hub or Git LFS) ────────────
+# Uncomment if you want to exclude them:
+# backend/*.pt
+# backend/*.onnx
+
+# ── Product library images (runtime data, not source code) ───────────────────
+backend/product_library/
+backend/reference_images/
+
+# ── Word/Office temp files ────────────────────────────────────────────────────
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.tmp
+
+# ── OS & editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.bak
+outputs/

@@ -1,0 +1,11 @@
+# Files to exclude from Hugging Face Spaces
+# Model weights are downloaded at Docker build time — no need to push them
+backend/*.pt
+backend/*.onnx
+backend/venv/
+backend/__pycache__/
+frontend/node_modules/
+backend/product_library/
+backend/reference_images/
+*.db
+*.sqlite

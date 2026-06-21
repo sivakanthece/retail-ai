@@ -36,10 +36,9 @@ npm-debug.log*
 backend/uploads/
 backend/temp_uploads/
 
-# ── ML model weights (large binaries — store in HF Hub or Git LFS) ────────────
-# Uncomment if you want to exclude them:
-# backend/*.pt
-# backend/*.onnx
+# ── ML model weights (large binaries — downloaded at Docker build time) ───────
+backend/*.pt
+backend/*.onnx
 
 # ── Product library images (runtime data, not source code) ───────────────────
 backend/product_library/

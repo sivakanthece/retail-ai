@@ -64,9 +64,23 @@ jobs:
           # This avoids pushing git history that contains large model files.
           git checkout --orphan hf-deploy
 
-          # Remove any .pt/.onnx model files from this snapshot
-          find . -name "*.pt" -o -name "*.onnx" | xargs git rm --cached -f 2>/dev/null || true
-          find . -name "*.pt" -o -name "*.onnx" | xargs rm -f 2>/dev/null || true
+          # Remove all binary/media files HF Spaces doesn't need
+          # (model weights, images, Office docs, notebooks — Docker only needs source code)
+          find . \( \
+            -name "*.pt" -o -name "*.onnx" -o \
+            -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.gif" -o \
+            -name "*.docx" -o -name "*.xlsx" -o -name "*.pptx" -o \
+            -name "*.ipynb" -o -name "*.db" -o -name "*.sqlite" \
+          \) | xargs git rm --cached -f 2>/dev/null || true
+          find . \( \
+            -name "*.pt" -o -name "*.onnx" -o \
+            -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.gif" -o \
+            -name "*.docx" -o -name "*.xlsx" -o -name "*.pptx" -o \
+            -name "*.ipynb" -o -name "*.db" -o -name "*.sqlite" \
+          \) -exec rm -f {} + 2>/dev/null || true
+
+          # Also remove dirs not needed for Docker build
+          rm -rf sample_test_images/ training/ 2>/dev/null || true
 
           git add -A
           git commit -m "deploy: $(date -u '+%Y-%m-%d %H:%M') — ${GITHUB_SHA::7}"

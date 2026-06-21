@@ -2,7 +2,7 @@
 FROM node:20-slim AS frontend-builder
 WORKDIR /app
 COPY frontend/package*.json ./
-RUN npm ci --silent
+RUN npm install --silent
 COPY frontend/ ./
 # Disable CI mode so build warnings don't abort the build
 ENV CI=false

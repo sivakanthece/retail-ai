@@ -34,6 +34,9 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            HF_MODEL_REPO=sivakanthece/retail-ai-yolo
+            HF_TOKEN=${{ secrets.HF_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -48,15 +51,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
 
-      - name: Push to Hugging Face Space
+      - name: Push to Hugging Face Space (exclude large model files)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE: ${{ secrets.HF_SPACE }}   # e.g. YourUsername/retail-ai
         run: |
           git config --global user.email "ci@retail-ai"
           git config --global user.name "Retail AI CI"
+
+          # Remove large model weights from the HF push (they are downloaded at build time)
+          git rm --cached backend/best.pt 2>/dev/null || true
+          git rm --cached backend/*.pt 2>/dev/null || true
+
+          # Commit the removal if anything changed
+          git diff --cached --quiet || git commit -m "chore: exclude model weights from HF push"
+
           git remote add hf https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}
           git push hf main --force
 

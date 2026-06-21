@@ -30,8 +30,19 @@ CLIPModel.from_pretrained('openai/clip-vit-base-patch32'); \
 CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32'); \
 print('CLIP cached OK')"
 
-# YOLOv8n base weights (~6 MB) — fallback if best.pt is not provided
-RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt'); print('YOLOv8n cached OK')"
+# Download custom trained YOLOv8 model from HF Model Hub at build time
+# Set HF_MODEL_REPO build arg to your model repo, e.g. sivakanthece/retail-ai-yolo
+ARG HF_MODEL_REPO=sivakanthece/retail-ai-yolo
+ARG HF_TOKEN
+RUN pip install huggingface_hub --quiet && \
+    python -c "\
+from huggingface_hub import hf_hub_download; \
+import os, shutil; \
+token = os.environ.get('HF_TOKEN') or None; \
+path = hf_hub_download(repo_id='${HF_MODEL_REPO}', filename='best.pt', token=token); \
+shutil.copy(path, '/app/backend/best.pt'); \
+print('best.pt downloaded OK')" || \
+    python -c "from ultralytics import YOLO; YOLO('yolov8n.pt'); print('Fallback: yolov8n.pt cached OK')"
 
 # Backend source
 COPY backend/ ./backend/

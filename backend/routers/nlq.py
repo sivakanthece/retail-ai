@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database import get_db, Product, Inventory, DetectionEvent, Alert, User
+from database import get_db, Product, DetectionEvent, Alert, User
 from security import get_current_user, sanitize_input
 from config import settings
 from pydantic import BaseModel

@@ -14,11 +14,12 @@ Both stages use the SAME CLIP model — loaded once, cached for all requests.
 First load downloads ~340 MB (ViT-B/32 weights); subsequent starts use disk cache.
 """
 
-import os, json, logging
+import os
+import json
+import logging
 import numpy as np
 import torch
 import torch.nn.functional as F
-from PIL import Image
 
 logger = logging.getLogger(__name__)
 

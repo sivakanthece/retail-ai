@@ -5,7 +5,12 @@ from security import get_current_user, User
 from config import settings
 from pydantic import BaseModel
 from PIL import Image, ImageDraw, ImageFont
-import io, json, base64, os, math, re, logging
+import io
+import json
+import base64
+import os
+import re
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -811,7 +816,7 @@ async def add_detection_to_library(
 ):
     """Crop a bbox from the cached image, extract embedding, store in product library."""
     from vision_pipeline import extract_embeddings_batch
-    import json, uuid
+    import uuid
 
     image = _image_cache.get(payload.event_id)
     if image is None:

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from database import get_db, Product, Inventory, DetectionEvent, Alert, User
+from database import get_db, Product, DetectionEvent, Alert, User
 from security import get_current_user
 from datetime import datetime, timedelta
 

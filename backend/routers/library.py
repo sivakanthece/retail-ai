@@ -13,12 +13,14 @@ Endpoints:
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
-from database import get_db, ProductReference, Product, User
+from database import get_db, ProductReference, User
 from security import get_current_user
 from vision_pipeline import extract_embeddings_batch
 from PIL import Image
-import io, os, json, uuid
-from datetime import datetime
+import io
+import os
+import json
+import uuid
 
 router = APIRouter(prefix="/library", tags=["library"])
 
@@ -178,8 +180,10 @@ def library_stats(
 def _clip_status() -> str:
     try:
         from vision_pipeline import _clip_ready, _clip_error
-        if _clip_ready:  return "ready"
-        if _clip_error:  return f"error: {_clip_error}"
+        if _clip_ready:
+            return "ready"
+        if _clip_error:
+            return f"error: {_clip_error}"
         return "not_loaded"
     except Exception:
         return "unknown"

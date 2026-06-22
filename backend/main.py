@@ -42,24 +42,45 @@ def health():
 
 @app.get("/debug/yolo")
 def debug_yolo():
-    """Check which YOLO model is loaded and whether best.pt exists on disk."""
+    """Check which YOLO model is loaded and attempt download if missing."""
     import os
     from config import settings
-    from routers.detection import _ensure_model_file
     backend_dir  = os.path.dirname(os.path.abspath(__file__))
     best_path    = os.path.join(backend_dir, "best.pt")
-    hf_token_set = bool(os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN"))
+    hf_token     = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN", "")
     hf_repo      = os.environ.get("HF_MODEL_REPO", "sivakanthece/retail-ai-yolo")
-    resolved     = _ensure_model_file()
-    return {
+
+    result = {
         "YOLO_MODEL_setting": settings.YOLO_MODEL,
-        "resolved_model":     resolved,
+        "backend_dir":        backend_dir,
         "best_pt_exists":     os.path.exists(best_path),
-        "best_pt_size_mb":    round(os.path.getsize(best_path) / 1024 / 1024, 1) if os.path.exists(best_path) else None,
-        "HF_TOKEN_set":       hf_token_set,
+        "HF_TOKEN_set":       bool(hf_token),
         "HF_MODEL_REPO":      hf_repo,
-        "status": "ready" if os.path.exists(best_path) or resolved == "yolov8n.pt" else "downloading",
+        "download_error":     None,
+        "download_success":   False,
     }
+
+    if not os.path.exists(best_path) and hf_token:
+        try:
+            from huggingface_hub import hf_hub_download
+            import shutil
+            downloaded = hf_hub_download(
+                repo_id=hf_repo,
+                filename="best.pt",
+                token=hf_token,
+            )
+            shutil.copy2(downloaded, best_path)
+            result["download_success"] = True
+            result["best_pt_exists"]   = os.path.exists(best_path)
+            result["best_pt_size_mb"]  = round(os.path.getsize(best_path) / 1024 / 1024, 1)
+        except Exception as e:
+            result["download_error"] = str(e)
+
+    if os.path.exists(best_path):
+        result["best_pt_size_mb"] = round(os.path.getsize(best_path) / 1024 / 1024, 1)
+
+    result["status"] = "ready" if os.path.exists(best_path) else "failed"
+    return result
 
 @app.get("/debug/clip")
 def debug_clip():

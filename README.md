@@ -13,6 +13,11 @@ app_port: 7860
 AI-powered shelf product detection and inventory management.
 
 - Upload shelf images → YOLOv8 detects all products
+- this has 3 stages:
+  stage 1: runs trained yolov8 model on the image and draws boundary boxes.
+  stage 2: here we use clip for classification it is zero shot model used directly.
+  stage 3: compares the images with library using clip model with cosine similarity.
+  stage 3B: we can query llm for unidentified prodcuts. 
 - AI (GPT-4o / Gemini / Groq) identifies product names and brands in batches of 10
 - Groups identical products, add to inventory with one click
 - Dashboard with stock levels, alerts, and analytics

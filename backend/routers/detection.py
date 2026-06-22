@@ -25,10 +25,50 @@ _image_cache: dict[int, Image.Image] = {}
 # ── Lazy-load YOLO ───────────────────────────────────────────────
 _model = None
 
+def _ensure_model_file():
+    """
+    If the configured model file doesn't exist on disk, try to download it
+    from Hugging Face Model Hub using the HF_TOKEN runtime env var.
+    Falls back to yolov8n.pt (auto-downloaded by ultralytics) if unavailable.
+    """
+    import os
+    model_name = settings.YOLO_MODEL
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(backend_dir, model_name)
+
+    if os.path.exists(model_path):
+        return model_name  # already on disk
+
+    if model_name == "yolov8n.pt":
+        return model_name  # ultralytics downloads this automatically
+
+    # Try to download from HF Model Hub
+    hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+    hf_repo  = os.environ.get("HF_MODEL_REPO", "sivakanthece/retail-ai-yolo")
+    if hf_token:
+        try:
+            from huggingface_hub import hf_hub_download
+            logger.info(f"Downloading {model_name} from {hf_repo} ...")
+            downloaded = hf_hub_download(
+                repo_id=hf_repo,
+                filename=model_name,
+                token=hf_token,
+                local_dir=backend_dir,
+            )
+            logger.info(f"Downloaded {model_name} to {downloaded}")
+            return model_name
+        except Exception as e:
+            logger.warning(f"HF Model Hub download failed: {e}")
+
+    logger.warning(f"{model_name} not found and could not be downloaded — falling back to yolov8n.pt")
+    return "yolov8n.pt"
+
+
 def get_model():
     global _model
     if _model is None:
         import torch
+        resolved = _ensure_model_file()
         _original_torch_load = torch.load
         def _patched_load(f, *args, **kwargs):
             kwargs.setdefault("weights_only", False)
@@ -36,7 +76,8 @@ def get_model():
         torch.load = _patched_load
         try:
             from ultralytics import YOLO
-            _model = YOLO(settings.YOLO_MODEL)
+            _model = YOLO(resolved)
+            logger.info(f"YOLO model loaded: {resolved}")
         finally:
             torch.load = _original_torch_load
     return _model

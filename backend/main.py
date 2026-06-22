@@ -45,17 +45,20 @@ def debug_yolo():
     """Check which YOLO model is loaded and whether best.pt exists on disk."""
     import os
     from config import settings
-    model_setting = settings.YOLO_MODEL
-    backend_dir   = os.path.dirname(__file__)
-    best_path     = os.path.join(backend_dir, "best.pt")
-    yolov8n_path  = os.path.join(backend_dir, "yolov8n.pt")
+    from routers.detection import _ensure_model_file
+    backend_dir  = os.path.dirname(os.path.abspath(__file__))
+    best_path    = os.path.join(backend_dir, "best.pt")
+    hf_token_set = bool(os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN"))
+    hf_repo      = os.environ.get("HF_MODEL_REPO", "sivakanthece/retail-ai-yolo")
+    resolved     = _ensure_model_file()
     return {
-        "YOLO_MODEL_setting": model_setting,
+        "YOLO_MODEL_setting": settings.YOLO_MODEL,
+        "resolved_model":     resolved,
         "best_pt_exists":     os.path.exists(best_path),
         "best_pt_size_mb":    round(os.path.getsize(best_path) / 1024 / 1024, 1) if os.path.exists(best_path) else None,
-        "yolov8n_exists":     os.path.exists(yolov8n_path),
-        "will_load":          model_setting,
-        "note": "If best_pt_exists is false, set YOLO_MODEL=yolov8n.pt in HF Space secrets or fix the Dockerfile HF_MODEL_REPO arg",
+        "HF_TOKEN_set":       hf_token_set,
+        "HF_MODEL_REPO":      hf_repo,
+        "status": "ready" if os.path.exists(best_path) or resolved == "yolov8n.pt" else "downloading",
     }
 
 @app.get("/debug/clip")

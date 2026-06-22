@@ -40,6 +40,24 @@ app.include_router(library.router)
 def health():
     return {"status": "ok"}
 
+@app.get("/debug/yolo")
+def debug_yolo():
+    """Check which YOLO model is loaded and whether best.pt exists on disk."""
+    import os
+    from config import settings
+    model_setting = settings.YOLO_MODEL
+    backend_dir   = os.path.dirname(__file__)
+    best_path     = os.path.join(backend_dir, "best.pt")
+    yolov8n_path  = os.path.join(backend_dir, "yolov8n.pt")
+    return {
+        "YOLO_MODEL_setting": model_setting,
+        "best_pt_exists":     os.path.exists(best_path),
+        "best_pt_size_mb":    round(os.path.getsize(best_path) / 1024 / 1024, 1) if os.path.exists(best_path) else None,
+        "yolov8n_exists":     os.path.exists(yolov8n_path),
+        "will_load":          model_setting,
+        "note": "If best_pt_exists is false, set YOLO_MODEL=yolov8n.pt in HF Space secrets or fix the Dockerfile HF_MODEL_REPO arg",
+    }
+
 @app.get("/debug/clip")
 def debug_clip():
     """

@@ -264,31 +264,46 @@ def _make_prompt(start: int, n: int) -> str:
     )
 
 
+LLM_TIMEOUT = 45  # seconds — prevents hanging forever if API is slow
+
+
 async def _call_openai(img_b64: str, prompt: str) -> list:
+    import asyncio
     import httpx
     from openai import AsyncOpenAI
-    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY, http_client=httpx.AsyncClient())
-    resp = await client.chat.completions.create(
-        model=settings.OPENAI_MODEL,
-        messages=[{"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
-            {"type": "text", "text": prompt},
-        ]}],
-        max_tokens=1200, temperature=0.1,
+    client = AsyncOpenAI(
+        api_key=settings.OPENAI_API_KEY,
+        http_client=httpx.AsyncClient(timeout=LLM_TIMEOUT),
+    )
+    resp = await asyncio.wait_for(
+        client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[{"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
+                {"type": "text", "text": prompt},
+            ]}],
+            max_tokens=1200, temperature=0.1,
+        ),
+        timeout=LLM_TIMEOUT,
     )
     return _parse_json(resp.choices[0].message.content)
 
 
 async def _call_gemini(img_b64: str, prompt: str) -> list:
+    import asyncio
     from google import genai as google_genai
     from google.genai import types as genai_types
     for model_name in ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash"]:
         try:
             cg   = google_genai.Client(api_key=settings.GOOGLE_API_KEY)
             part = genai_types.Part.from_bytes(data=base64.b64decode(img_b64), mime_type="image/jpeg")
-            resp = cg.models.generate_content(
-                model=model_name, contents=[part, prompt],
-                config=genai_types.GenerateContentConfig(temperature=0.1, max_output_tokens=1200),
+            resp = await asyncio.wait_for(
+                asyncio.to_thread(
+                    cg.models.generate_content,
+                    model=model_name, contents=[part, prompt],
+                    config=genai_types.GenerateContentConfig(temperature=0.1, max_output_tokens=1200),
+                ),
+                timeout=LLM_TIMEOUT,
             )
             return _parse_json(resp.text)
         except Exception as e:
@@ -297,15 +312,19 @@ async def _call_gemini(img_b64: str, prompt: str) -> list:
 
 
 async def _call_groq(img_b64: str, prompt: str) -> list:
+    import asyncio
     from groq import AsyncGroq
     cq   = AsyncGroq(api_key=settings.GROQ_API_KEY)
-    resp = await cq.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        messages=[{"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
-            {"type": "text", "text": prompt},
-        ]}],
-        max_tokens=1200, temperature=0.1,
+    resp = await asyncio.wait_for(
+        cq.chat.completions.create(
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=[{"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
+                {"type": "text", "text": prompt},
+            ]}],
+            max_tokens=1200, temperature=0.1,
+        ),
+        timeout=LLM_TIMEOUT,
     )
     return _parse_json(resp.choices[0].message.content)
 
@@ -322,6 +341,7 @@ _PROVIDER_FN = {name: fn for name, _, fn in _PROVIDERS}
 
 async def _run_batch(image, iw, ih, batch, batch_start, provider_hint=""):
     """Crop, build strip, call LLM. Returns (items, provider_used)."""
+    import asyncio
     crops = []
     for d in batch:
         x1, y1, x2, y2 = d["bbox"]
@@ -341,10 +361,13 @@ async def _run_batch(image, iw, ih, batch, batch_start, provider_hint=""):
     # Probe in order, lock on first success
     for name, available, fn in _PROVIDERS:
         if not available():
+            logger.info(f"Skipping {name} — API key not configured")
             continue
         try:
             items = await fn(strip_b64, prompt)
             return items, name
+        except asyncio.TimeoutError:
+            logger.warning(f"{name} timed out after {LLM_TIMEOUT}s — trying next provider")
         except Exception as e:
             logger.warning(f"{name} failed: {e}")
 

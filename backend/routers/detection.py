@@ -945,4 +945,123 @@ async def run_pipeline(
             "category":            cat,
             "category_confidence": round(cat_conf, 3),
             # Stage 3 — local library match
-    
+            "matched_product":     match["product_name"]     if match else None,
+            "product_id":          match["product_id"]       if match else None,
+            "match_confidence":    match["match_confidence"]  if match else None,
+            "stage":               3 if match else 2,
+            # Stage 3b — Open Food Facts suggestions (when no library match)
+            "off_suggestions":     off if not match else None,
+        }
+        enriched.append(enriched_d)
+
+        if match:
+            stage3_matched += 1
+        else:
+            stage3_unmatched += 1
+
+    from vision_pipeline import _clip_ready, _clip_error
+    return {
+        "event_id":   payload.event_id,
+        "detections": enriched,
+        "pipeline_stats": {
+            "stage1_total":      len(detections),
+            "stage2_classified": len(detections),
+            "stage3_matched":    stage3_matched,
+            "stage3_unmatched":  stage3_unmatched,
+            "library_size":      len(refs),
+            "clip_ready":        _clip_ready,
+            "clip_error":        str(_clip_error) if _clip_error else None,
+        },
+    }
+
+
+# ── Add crop directly to product library ──────────────────────────
+class AddToLibraryRequest(BaseModel):
+    event_id:     int
+    bbox:         list[float]
+    product_name: str
+    product_id:   int | None = None
+
+@router.post("/add-to-library")
+async def add_detection_to_library(
+    payload: AddToLibraryRequest,
+    db:      Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Crop a bbox from the cached image, extract embedding, store in product library."""
+    from vision_pipeline import extract_embeddings_batch
+    import uuid
+
+    image = _image_cache.get(payload.event_id)
+    if image is None:
+        raise HTTPException(status_code=404, detail="Image not in cache — re-upload first.")
+
+    iw, ih = image.size
+    x1, y1, x2, y2 = payload.bbox
+    pad  = 4
+    crop = image.crop((
+        max(0, int(x1) - pad), max(0, int(y1) - pad),
+        min(iw, int(x2) + pad), min(ih, int(y2) + pad),
+    ))
+
+    embeddings = extract_embeddings_batch([crop])
+    emb = embeddings[0]
+    if emb is None:
+        raise HTTPException(status_code=503, detail="CLIP model not available.")
+
+    # Save crop image to product library folder
+    ref_dir = os.path.join(os.path.dirname(__file__), "..", "product_library")
+    os.makedirs(ref_dir, exist_ok=True)
+    slug     = payload.product_name.lower().replace(" ", "_")[:30]
+    filename = f"{slug}_{uuid.uuid4().hex[:8]}.jpg"
+    img_path = os.path.join(ref_dir, filename)
+    crop.convert("RGB").save(img_path, "JPEG", quality=90)
+
+    ref = ProductReference(
+        product_name = payload.product_name.strip(),
+        product_id   = payload.product_id,
+        image_path   = img_path,
+        embedding    = json.dumps(emb),
+    )
+    db.add(ref)
+    db.commit()
+    db.refresh(ref)
+
+    return {
+        "id":           ref.id,
+        "product_name": ref.product_name,
+        "image_url":    f"/library/image/{ref.id}",
+        "message":      f"Added to library: {ref.product_name}",
+    }
+
+
+def _update_inventory_from_detections(detections: list, db: Session) -> list:
+    updates = []
+    category_counts = {}
+    for d in detections:
+        cat = d["category"]
+        category_counts[cat] = category_counts.get(cat, 0) + 1
+
+    products = db.query(Product).all()
+    for product in products:
+        if product.category in category_counts and product.inventory:
+            detected_count = category_counts[product.category]
+            old_qty = product.inventory.quantity
+            product.inventory.quantity = detected_count
+            product.inventory.last_updated = datetime.utcnow()
+
+            if product.inventory.quantity < product.low_stock_threshold:
+                alert = Alert(
+                    product_id=product.id,
+                    alert_type="low_stock",
+                    message=f"{product.name} is low: {product.inventory.quantity} units",
+                )
+                db.add(alert)
+
+            updates.append({
+                "sku": product.sku,
+                "name": product.name,
+                "old_quantity": old_qty,
+                "new_quantity": product.inventory.quantity,
+            })
+    return updates

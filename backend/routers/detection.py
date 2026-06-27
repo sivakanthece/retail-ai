@@ -5,6 +5,7 @@ from security import get_current_user, User
 from config import settings
 from pydantic import BaseModel
 from PIL import Image, ImageDraw, ImageFont
+import asyncio
 import io
 import json
 import base64
@@ -33,11 +34,12 @@ def _ensure_model_file():
     """
     import os
     model_name = settings.YOLO_MODEL
-    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    # __file__ is backend/routers/detection.py — go up one level to backend/
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     model_path = os.path.join(backend_dir, model_name)
 
     if os.path.exists(model_path):
-        return model_name  # already on disk
+        return model_path  # return full path so YOLO loads it correctly
 
     if model_name == "yolov8n.pt":
         return model_name  # ultralytics downloads this automatically
@@ -55,8 +57,9 @@ def _ensure_model_file():
                 token=hf_token,
                 local_dir=backend_dir,
             )
-            logger.info(f"Downloaded {model_name} to {downloaded}")
-            return model_name
+            full = os.path.join(backend_dir, model_name)
+            logger.info(f"Downloaded {model_name} to {full}")
+            return full
         except Exception as e:
             logger.warning(f"HF Model Hub download failed: {e}")
 
@@ -380,6 +383,40 @@ _PROVIDERS = [
 _PROVIDER_FN = {name: fn for name, _, fn in _PROVIDERS}
 
 
+def _library_preflight(image, iw, ih, batch, db):
+    """
+    Run CLIP embedding + library match on a batch of detections.
+    Returns a list parallel to `batch` — each entry is either a match dict
+    (product_name, product_id, match_confidence, category) or None.
+    Items that get a library match skip the LLM entirely.
+    """
+    try:
+        from vision_pipeline import extract_embeddings_batch, find_best_matches
+        refs_raw = db.query(ProductReference).all()
+        if not refs_raw:
+            return [None] * len(batch)
+
+        refs = [
+            {"product_name": r.product_name, "product_id": r.product_id, "embedding": r.embedding}
+            for r in refs_raw
+        ]
+
+        crops = []
+        for d in batch:
+            x1, y1, x2, y2 = d["bbox"]
+            crop = image.crop((max(0,int(x1)), max(0,int(y1)),
+                               min(iw,int(x2)), min(ih,int(y2))))
+            crop.thumbnail((224, 224))
+            crops.append(crop)
+
+        embeddings = extract_embeddings_batch(crops)
+        matches    = find_best_matches(embeddings, refs)
+        return matches   # None for non-matches, dict for matches
+    except Exception as e:
+        logger.warning(f"Library preflight failed: {e}")
+        return [None] * len(batch)
+
+
 async def _run_batch(image, iw, ih, batch, batch_start, provider_hint=""):
     """Crop, build strip, call LLM. Returns (items, provider_used)."""
     import asyncio
@@ -432,25 +469,66 @@ async def _run_batch(image, iw, ih, batch, batch_start, provider_hint=""):
 @router.post("/identify-batch")
 async def identify_single_batch(
     payload: IdentifyBatchRequest,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Process one batch of detections. Frontend calls this repeatedly to show real progress."""
+    """Check library first; only send unmatched items to LLM."""
     image = _image_cache.get(payload.event_id)
     if image is None:
         raise HTTPException(status_code=404, detail="Image not found. Re-upload the shelf image.")
     iw, ih = image.size
-    items, provider_used = await _run_batch(
-        image, iw, ih, payload.detections, payload.batch_start, payload.provider
+    batch  = payload.detections
+
+    # ── Library preflight ─────────────────────────────────────────
+    lib_matches = await asyncio.to_thread(
+        _library_preflight, image, iw, ih, batch, db
     )
-    return {"items": items, "provider_used": provider_used}
+
+    # Detections with no library match go to LLM
+    unmatched_indices = [i for i, m in enumerate(lib_matches) if m is None]
+    items = []
+
+    if unmatched_indices:
+        unmatched_batch = [batch[i] for i in unmatched_indices]
+        llm_items, provider_used = await _run_batch(
+            image, iw, ih, unmatched_batch, payload.batch_start, payload.provider
+        )
+        # Re-index LLM results back to original batch positions
+        for llm_pos, orig_pos in enumerate(unmatched_indices):
+            matched = next((it for it in llm_items if it.get("index") == payload.batch_start + llm_pos + 1), None)
+            if matched:
+                matched["index"] = payload.batch_start + orig_pos + 1
+                items.append(matched)
+    else:
+        provider_used = "library"
+
+    # Fill in library matches
+    for i, m in enumerate(lib_matches):
+        if m is not None:
+            items.append({
+                "index":           payload.batch_start + i + 1,
+                "name":            m["product_name"],
+                "brand":           "",
+                "category":        m.get("category", ""),
+                "estimated_price": 0.0,
+                "sku":             "",
+                "from_library":    True,
+                "match_confidence": m["match_confidence"],
+            })
+
+    items.sort(key=lambda x: x["index"])
+    lib_count = sum(1 for m in lib_matches if m is not None)
+    return {"items": items, "provider_used": provider_used,
+            "library_hits": lib_count, "llm_calls": len(unmatched_indices)}
 
 
 @router.post("/identify-all")
 async def identify_all_products(
     payload: IdentifyAllRequest,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Send detections to vision AI in batches of 10. Locks in the first working LLM."""
+    """Check library first; send only unmatched detections to LLM in batches of 10."""
     image = _image_cache.get(payload.event_id)
     if image is None:
         raise HTTPException(status_code=404, detail="Image not found. Re-upload the shelf image.")
@@ -458,16 +536,48 @@ async def identify_all_products(
     iw, ih     = image.size
     detections = payload.detections
     BATCH      = 10
+
+    # ── Library preflight across all detections ───────────────────
+    all_lib_matches = await asyncio.to_thread(
+        _library_preflight, image, iw, ih, detections, db
+    )
+
+    unmatched_indices = [i for i, m in enumerate(all_lib_matches) if m is None]
     identified: list[dict] = []
     locked_provider = ""
 
-    for batch_start in range(0, len(detections), BATCH):
-        batch  = detections[batch_start: batch_start + BATCH]
+    # Only send unmatched detections to LLM
+    for batch_start in range(0, len(unmatched_indices), BATCH):
+        chunk_idx = unmatched_indices[batch_start: batch_start + BATCH]
+        batch     = [detections[i] for i in chunk_idx]
         items, locked_provider = await _run_batch(
             image, iw, ih, batch, batch_start, locked_provider
         )
-        identified.extend(items)
+        # Re-map indices back to original positions
+        for pos, (it, orig_i) in enumerate(zip(items, chunk_idx)):
+            it["index"] = orig_i + 1
+            identified.append(it)
         logger.info(f"Batch {batch_start//BATCH+1}: {locked_provider} → {len(items)} items")
+
+    # Merge library matches into results
+    for i, m in enumerate(all_lib_matches):
+        if m is not None:
+            identified.append({
+                "index":            i + 1,
+                "name":             m["product_name"],
+                "brand":            "",
+                "category":         m.get("category", ""),
+                "estimated_price":  0.0,
+                "sku":              "",
+                "from_library":     True,
+                "match_confidence": m["match_confidence"],
+            })
+
+    lib_count = sum(1 for m in all_lib_matches if m is not None)
+    logger.info(f"identify-all: {lib_count} library hits, {len(unmatched_indices)} sent to LLM")
+
+    # Map index → product info
+    id_map = {item["index"]: item for item in identified}
 
     # Map index → product info
     id_map = {item["index"]: item for item in identified}
@@ -835,123 +945,4 @@ async def run_pipeline(
             "category":            cat,
             "category_confidence": round(cat_conf, 3),
             # Stage 3 — local library match
-            "matched_product":     match["product_name"]     if match else None,
-            "product_id":          match["product_id"]       if match else None,
-            "match_confidence":    match["match_confidence"]  if match else None,
-            "stage":               3 if match else 2,
-            # Stage 3b — Open Food Facts suggestions (when no library match)
-            "off_suggestions":     off if not match else None,
-        }
-        enriched.append(enriched_d)
-
-        if match:
-            stage3_matched += 1
-        else:
-            stage3_unmatched += 1
-
-    from vision_pipeline import _clip_ready, _clip_error
-    return {
-        "event_id":   payload.event_id,
-        "detections": enriched,
-        "pipeline_stats": {
-            "stage1_total":      len(detections),
-            "stage2_classified": len(detections),
-            "stage3_matched":    stage3_matched,
-            "stage3_unmatched":  stage3_unmatched,
-            "library_size":      len(refs),
-            "clip_ready":        _clip_ready,
-            "clip_error":        str(_clip_error) if _clip_error else None,
-        },
-    }
-
-
-# ── Add crop directly to product library ──────────────────────────
-class AddToLibraryRequest(BaseModel):
-    event_id:     int
-    bbox:         list[float]
-    product_name: str
-    product_id:   int | None = None
-
-@router.post("/add-to-library")
-async def add_detection_to_library(
-    payload: AddToLibraryRequest,
-    db:      Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Crop a bbox from the cached image, extract embedding, store in product library."""
-    from vision_pipeline import extract_embeddings_batch
-    import uuid
-
-    image = _image_cache.get(payload.event_id)
-    if image is None:
-        raise HTTPException(status_code=404, detail="Image not in cache — re-upload first.")
-
-    iw, ih = image.size
-    x1, y1, x2, y2 = payload.bbox
-    pad  = 4
-    crop = image.crop((
-        max(0, int(x1) - pad), max(0, int(y1) - pad),
-        min(iw, int(x2) + pad), min(ih, int(y2) + pad),
-    ))
-
-    embeddings = extract_embeddings_batch([crop])
-    emb = embeddings[0]
-    if emb is None:
-        raise HTTPException(status_code=503, detail="CLIP model not available.")
-
-    # Save crop image to product library folder
-    ref_dir = os.path.join(os.path.dirname(__file__), "..", "product_library")
-    os.makedirs(ref_dir, exist_ok=True)
-    slug     = payload.product_name.lower().replace(" ", "_")[:30]
-    filename = f"{slug}_{uuid.uuid4().hex[:8]}.jpg"
-    img_path = os.path.join(ref_dir, filename)
-    crop.convert("RGB").save(img_path, "JPEG", quality=90)
-
-    ref = ProductReference(
-        product_name = payload.product_name.strip(),
-        product_id   = payload.product_id,
-        image_path   = img_path,
-        embedding    = json.dumps(emb),
-    )
-    db.add(ref)
-    db.commit()
-    db.refresh(ref)
-
-    return {
-        "id":           ref.id,
-        "product_name": ref.product_name,
-        "image_url":    f"/library/image/{ref.id}",
-        "message":      f"Added to library: {ref.product_name}",
-    }
-
-
-def _update_inventory_from_detections(detections: list, db: Session) -> list:
-    updates = []
-    category_counts = {}
-    for d in detections:
-        cat = d["category"]
-        category_counts[cat] = category_counts.get(cat, 0) + 1
-
-    products = db.query(Product).all()
-    for product in products:
-        if product.category in category_counts and product.inventory:
-            detected_count = category_counts[product.category]
-            old_qty = product.inventory.quantity
-            product.inventory.quantity = detected_count
-            product.inventory.last_updated = datetime.utcnow()
-
-            if product.inventory.quantity < product.low_stock_threshold:
-                alert = Alert(
-                    product_id=product.id,
-                    alert_type="low_stock",
-                    message=f"{product.name} is low: {product.inventory.quantity} units",
-                )
-                db.add(alert)
-
-            updates.append({
-                "sku": product.sku,
-                "name": product.name,
-                "old_quantity": old_qty,
-                "new_quantity": product.inventory.quantity,
-            })
-    return updates
+    

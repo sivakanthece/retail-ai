@@ -54,7 +54,7 @@ function ProductCard({ product_name, refs, onDelete }) {
             border: '1px solid #e2e8f0', flexShrink: 0,
           }}>
             <img
-              src={`/api${refs[0]?.image_url}`}
+              src={refs[0]?.image_url}
               alt={product_name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={e => { e.target.style.display = 'none'; }}
@@ -85,7 +85,7 @@ function ProductCard({ product_name, refs, onDelete }) {
             {refs.map(ref => (
               <div key={ref.id} style={{ position: 'relative' }}>
                 <img
-                  src={`/api${ref.image_url}`}
+                  src={ref.image_url}
                   alt="ref"
                   style={{
                     width: 80, height: 80, objectFit: 'cover',

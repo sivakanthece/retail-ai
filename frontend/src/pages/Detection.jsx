@@ -66,6 +66,43 @@ function PipelineBanner({ currentStage, stats }) {
   );
 }
 
+// ── Bulk-save progress bar ────────────────────────────────────────
+function BulkSaveProgress({ done, total, type, currentName }) {
+  const pct  = total > 0 ? Math.round((done / total) * 100) : 0;
+  const icon = type === 'library' ? '📚' : '💾';
+  const label = type === 'library' ? 'Saving to Library' : 'Saving to Inventory';
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg,#1e1b4b,#0f172a)',
+      borderRadius: 14, padding: '16px 20px', marginBottom: 14,
+      color: '#fff', animation: 'fadeSlideIn 0.3s ease',
+    }}>
+      <style>{`@keyframes fadeSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#a78bfa' }}>
+          {icon} {label} — {done} of {total}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#34d399' }}>{pct}%</div>
+      </div>
+      {/* Track */}
+      <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 99, height: 8, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', borderRadius: 99,
+          background: 'linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa)',
+          width: `${pct}%`,
+          transition: 'width 0.4s ease',
+          boxShadow: '0 0 10px rgba(139,92,246,0.6)',
+        }} />
+      </div>
+      {currentName && (
+        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, truncate: 'ellipsis' }}>
+          ⏳ {currentName}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Add-to-library inline modal ───────────────────────────────────
 function AddToLibraryModal({ bbox, eventId, onDone, onClose }) {
   const [name, setName]     = useState('');
@@ -700,7 +737,8 @@ export default function Detection() {
   const [modalGroup,      setModalGroup]      = useState(null);
   const [showCamera,      setShowCamera]      = useState(false);
   const [libraryModal,    setLibraryModal]    = useState(null); // {bbox, index}
-  const [savedToLibrary,  setSavedToLibrary]  = useState({});   // name -> true/saving/error
+  const [savedToLibrary,  setSavedToLibrary]  = useState({});   // name -> 'saving'|'done'|'error'
+  const [bulkSave,        setBulkSave]        = useState(null); // {done, total, type, currentName}
   const [error,           setError]           = useState('');
   const [preview,         setPreview]         = useState(null);
   const [progress,      setProgress]      = useState(null);
@@ -831,8 +869,12 @@ export default function Detection() {
 
   const handleAddAll = async () => {
     if (!groups) return;
-    for (const g of groups) {
-      if (savedNames[g.name]) continue;
+    const pending = groups.filter(g => !savedNames[g.name]);
+    if (!pending.length) return;
+    setBulkSave({ done: 0, total: pending.length, type: 'db', currentName: pending[0]?.name });
+    let done = 0;
+    for (const g of pending) {
+      setBulkSave(s => ({ ...s, currentName: g.name }));
       try {
         const res = await detectionAPI.saveProduct({
           name: g.name, sku: g.sku, category: g.category,
@@ -843,7 +885,10 @@ export default function Detection() {
         });
         setSavedNames(s => ({ ...s, [g.name]: res.data }));
       } catch { /* skip duplicates */ }
+      done++;
+      setBulkSave(s => ({ ...s, done }));
     }
+    setBulkSave(null);
   };
 
   const onSaved = (name, data) => setSavedNames(s => ({ ...s, [name]: data }));
@@ -875,10 +920,17 @@ export default function Detection() {
 
   const handleSaveAllToLibrary = async () => {
     if (!groups) return;
-    for (const g of groups) {
-      if (savedToLibrary[g.name] === 'done') continue;
+    const pending = groups.filter(g => savedToLibrary[g.name] !== 'done');
+    if (!pending.length) return;
+    setBulkSave({ done: 0, total: pending.length, type: 'library', currentName: pending[0]?.name });
+    let done = 0;
+    for (const g of pending) {
+      setBulkSave(s => ({ ...s, currentName: g.name }));
       await handleSaveToLibrary(g);
+      done++;
+      setBulkSave(s => ({ ...s, done }));
     }
+    setBulkSave(null);
   };
 
   const savedCount    = Object.keys(savedNames).length;
@@ -1197,29 +1249,53 @@ export default function Detection() {
                   {(() => {
                     const libDoneCount = Object.values(savedToLibrary).filter(v => v === 'done').length;
                     const allLibSaved  = libDoneCount === groups.length;
-                    const anySaving    = Object.values(savedToLibrary).some(v => v === 'saving');
+                    const isSavingLib  = bulkSave?.type === 'library';
                     return (
                       <button className="btn"
-                        style={{ background: allLibSaved ? '#7c3aed' : '#6d28d9', fontSize:12 }}
+                        style={{
+                          background: allLibSaved ? '#7c3aed' : '#6d28d9', fontSize:12,
+                          display:'flex', alignItems:'center', gap:6,
+                          opacity: (allLibSaved || isSavingLib) ? 0.7 : 1,
+                        }}
                         onClick={handleSaveAllToLibrary}
-                        disabled={allLibSaved || anySaving}>
-                        {allLibSaved
-                          ? '✅ All in Library'
-                          : anySaving
-                          ? '⏳ Saving…'
-                          : `📚 Save All to Library (${groups.length - libDoneCount} remaining)`}
+                        disabled={allLibSaved || isSavingLib}>
+                        {allLibSaved ? '✅ All in Library'
+                          : isSavingLib ? `📚 ${bulkSave.done}/${bulkSave.total} saved…`
+                          : `📚 Save All to Library (${groups.length - libDoneCount})`}
                       </button>
                     );
                   })()}
                   {/* Save all to inventory DB */}
-                  <button className="btn"
-                    style={{ background: savedCount === groups.length ? '#16a34a' : undefined }}
-                    onClick={handleAddAll}
-                    disabled={savedCount === groups.length}>
-                    {savedCount === groups.length ? '✅ All in DB' : `💾 Add All to DB (${groups.length - savedCount} remaining)`}
-                  </button>
+                  {(() => {
+                    const allInDB    = savedCount === groups.length;
+                    const isSavingDB = bulkSave?.type === 'db';
+                    return (
+                      <button className="btn"
+                        style={{
+                          background: allInDB ? '#16a34a' : undefined, fontSize:12,
+                          display:'flex', alignItems:'center', gap:6,
+                          opacity: (allInDB || isSavingDB) ? 0.7 : 1,
+                        }}
+                        onClick={handleAddAll}
+                        disabled={allInDB || isSavingDB}>
+                        {allInDB ? '✅ All in DB'
+                          : isSavingDB ? `💾 ${bulkSave.done}/${bulkSave.total} saved…`
+                          : `💾 Add All to DB (${groups.length - savedCount})`}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
+
+              {/* Bulk save progress bar */}
+              {bulkSave && (
+                <BulkSaveProgress
+                  done={bulkSave.done}
+                  total={bulkSave.total}
+                  type={bulkSave.type}
+                  currentName={bulkSave.currentName}
+                />
+              )}
 
               <table>
                 <thead>
@@ -1266,20 +1342,36 @@ export default function Detection() {
                         {/* Library column */}
                         <td>
                           {savedToLibrary[g.name] === 'done'
-                            ? <span style={{ color:'#7c3aed', fontWeight:600, fontSize:12 }}>✅ Saved</span>
+                            ? (
+                              <span style={{
+                                display:'inline-flex', alignItems:'center', gap:4,
+                                color:'#7c3aed', fontWeight:700, fontSize:12,
+                                background:'#f5f3ff', padding:'3px 9px', borderRadius:99,
+                              }}>✅ Saved</span>
+                            )
                             : savedToLibrary[g.name] === 'saving'
-                            ? <span style={{ color:'#a78bfa', fontSize:12 }}>⏳ Saving…</span>
+                            ? (
+                              <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'#6d28d9' }}>
+                                <span style={{
+                                  width:12, height:12, border:'2px solid #c4b5fd',
+                                  borderTopColor:'#7c3aed', borderRadius:'50%',
+                                  display:'inline-block', animation:'spin 0.7s linear infinite',
+                                }}/>
+                                Saving…
+                              </span>
+                            )
                             : savedToLibrary[g.name] === 'error'
-                            ? <span style={{ color:'#dc2626', fontSize:12 }} title="CLIP not available?">❌ Failed</span>
+                            ? <span style={{ color:'#dc2626', fontSize:12 }} title="CLIP unavailable?">❌ Failed</span>
                             : (
                               <button
                                 onClick={() => handleSaveToLibrary(g)}
+                                disabled={!!bulkSave}
                                 style={{
                                   padding:'4px 10px', borderRadius:6, border:'1px solid #c4b5fd',
-                                  background:'#f5f3ff', color:'#6d28d9', cursor:'pointer',
-                                  fontSize:11, fontWeight:600,
+                                  background:'#f5f3ff', color:'#6d28d9', cursor: bulkSave ? 'default' : 'pointer',
+                                  fontSize:11, fontWeight:600, opacity: bulkSave ? 0.5 : 1,
                                 }}
-                                title={`Save up to ${Math.min(g.count, 3)} crop(s) as reference images for Stage 3`}
+                                title={`Save up to ${Math.min(g.count, 3)} crop(s) as reference images`}
                               >
                                 📚 Save
                               </button>
@@ -1289,8 +1381,15 @@ export default function Detection() {
                         {/* Inventory column */}
                         <td>
                           {isSaved
-                            ? <span style={{ fontSize:12, color:'#16a34a', fontWeight:600 }}>✅ In DB</span>
-                            : <button className="btn" style={{ padding:'4px 14px', fontSize:12 }}
+                            ? (
+                              <span style={{
+                                display:'inline-flex', alignItems:'center', gap:4,
+                                color:'#16a34a', fontWeight:700, fontSize:12,
+                                background:'#f0fdf4', padding:'3px 9px', borderRadius:99,
+                              }}>✅ In DB</span>
+                            )
+                            : <button className="btn" style={{ padding:'4px 14px', fontSize:12, opacity: bulkSave?.type==='db' ? 0.5 : 1 }}
+                                disabled={bulkSave?.type === 'db'}
                                 onClick={() => setModalGroup(g)}>+ Add</button>}
                         </td>
                       </tr>

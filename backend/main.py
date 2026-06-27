@@ -15,8 +15,9 @@ def _warmup_models():
     logger = logging.getLogger("startup")
 
     # ── Download best.pt from HF Model Hub if not on disk ────────────────────
+    from config import settings
     backend_dir = os.path.dirname(os.path.abspath(__file__))
-    model_name  = os.environ.get("YOLO_MODEL", "best.pt")
+    model_name  = settings.YOLO_MODEL          # reads from .env correctly
     model_path  = os.path.join(backend_dir, model_name)
     hf_token    = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN", "")
     hf_repo     = os.environ.get("HF_MODEL_REPO", "sivakanthece/retail-ai-yolo")

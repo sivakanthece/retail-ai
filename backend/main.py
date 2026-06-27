@@ -9,9 +9,52 @@ import os
 
 FRONTEND_BUILD = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
 
+def _warmup_models():
+    """Download and pre-load models at startup so the first request is instant."""
+    import os, logging
+    logger = logging.getLogger("startup")
+
+    # ── Download best.pt from HF Model Hub if not on disk ────────────────────
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    model_name  = os.environ.get("YOLO_MODEL", "best.pt")
+    model_path  = os.path.join(backend_dir, model_name)
+    hf_token    = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN", "")
+    hf_repo     = os.environ.get("HF_MODEL_REPO", "sivakanthece/retail-ai-yolo")
+
+    if not os.path.exists(model_path) and model_name != "yolov8n.pt" and hf_token:
+        try:
+            from huggingface_hub import hf_hub_download
+            import shutil
+            logger.info(f"Downloading {model_name} from {hf_repo} ...")
+            downloaded = hf_hub_download(repo_id=hf_repo, filename=model_name, token=hf_token)
+            shutil.copy2(downloaded, model_path)
+            logger.info(f"Model downloaded: {model_path} ({os.path.getsize(model_path)//1024//1024} MB)")
+        except Exception as e:
+            logger.warning(f"Could not download {model_name}: {e} — will use yolov8n.pt")
+
+    # ── Pre-load YOLO so first detection request is instant ──────────────────
+    try:
+        from routers.detection import get_model
+        get_model()
+        logger.info("YOLO model pre-loaded OK")
+    except Exception as e:
+        logger.warning(f"YOLO pre-load failed: {e}")
+
+    # ── Pre-load CLIP so first pipeline request is instant ───────────────────
+    try:
+        import vision_pipeline as vp
+        vp._load_clip()
+        logger.info(f"CLIP pre-loaded OK: {vp._clip_ready}")
+    except Exception as e:
+        logger.warning(f"CLIP pre-load failed: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    # Run model warmup in a background thread so it doesn't block app startup
+    import asyncio
+    await asyncio.to_thread(_warmup_models)
     yield
 
 app = FastAPI(

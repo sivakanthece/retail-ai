@@ -2,8 +2,17 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Foreign
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 import enum
+import os
 from datetime import datetime
 from config import settings
+
+# Ensure the parent directory for a SQLite file exists (e.g. /data on HF Spaces)
+if settings.DATABASE_URL.startswith("sqlite"):
+    # Extract the file path from sqlite:///path or sqlite:////abs/path
+    db_path = settings.DATABASE_URL.replace("sqlite:///", "")
+    if db_path and db_path != ":memory:":
+        db_dir = os.path.dirname(os.path.abspath(db_path))
+        os.makedirs(db_dir, exist_ok=True)
 
 # SQLite needs check_same_thread=False; PostgreSQL needs pool settings
 if settings.DATABASE_URL.startswith("sqlite"):

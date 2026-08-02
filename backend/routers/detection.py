@@ -709,151 +709,6 @@ def _map_to_retail_category(cls_name: str) -> str:
     }
     return mapping.get(cls_name, "General")
 
-# ── Open Food Facts category → tag mapping (covers all 38 categories) ────────
-_OFF_TAG_MAP = {
-    # Produce
-    "Fresh Fruits":                  "fruits",
-    "Fresh Vegetables":              "vegetables",
-    # Dairy
-    "Milk & Dairy Drinks":           "milks",
-    "Cheese":                        "cheeses",
-    "Yogurt":                        "yogurts",
-    "Eggs":                          "eggs",
-    # Protein
-    "Meat & Poultry":                "meats",
-    "Seafood":                       "seafood",
-    "Deli Meats":                    "deli-meats",
-    # Frozen
-    "Frozen Meals":                  "frozen-foods",
-    "Ice Cream & Frozen Desserts":   "ice-creams",
-    # Bakery / Grains
-    "Bread & Bakery":                "breads",
-    "Cookies & Crackers":            "biscuits-and-cakes",
-    "Cereals & Oats":                "cereals",
-    "Snack Bars & Protein Bars":     "snack-bars",
-    # Snacks
-    "Chips & Crisps":                "chips-and-crisps",
-    "Nuts & Seeds":                  "nuts",
-    "Candy & Chocolate":             "chocolates",
-    # Beverages
-    "Water & Juice":                 "juices",
-    "Soda & Energy Drinks":          "sodas",
-    "Tea & Coffee":                  "coffees",
-    "Beer":                          "beers",
-    "Wine & Spirits":                "wines",
-    # Pantry
-    "Canned Goods":                  "canned-foods",
-    "Pasta & Noodles":               "pastas",
-    "Rice & Grains":                 "rice",
-    "Sauces & Condiments":           "sauces",
-    "Cooking Oils":                  "oils",
-    "Spreads & Jams":                "spreads",
-    # Baby / Pet
-    "Baby Products":                 "baby-foods",
-    "Pet Food":                      "pet-foods",
-    # Personal Care
-    "Hair Care":                     "hair-care",
-    "Body Wash & Soap":              "soaps",
-    "Oral Care":                     "oral-hygiene",
-    "Health & Vitamins":             "dietary-supplements",
-    # Household
-    "Household Cleaners":            "household-products",
-    "Paper Products":                "paper-products",
-    # Fallback
-    "General Grocery":               "grocery",
-    "General":                       "grocery",
-}
-
-async def _query_open_food_facts_batch(
-    categories: list,
-    matches: list,
-) -> list:
-    """
-    For each unmatched detection, query Open Food Facts and return up to 3 product
-    suggestions based on the Stage 2 category.
-
-    Key fix: fetches 20 results per tag and distributes them so different detections
-    within the same category get DIFFERENT suggestions, not the same 3 repeated.
-
-    Returns list parallel to detections:
-      - None                                    → detection already has a library match
-      - [{name, brand, nutriscore, image_url, off_url}]  → OFF suggestions (may be [])
-    """
-    import httpx
-
-    # Step 1: collect unique tags we need to fetch
-    tag_pool: dict[str, list] = {}   # tag → full list of suggestions fetched
-    tag_counters: dict[str, int] = {}  # tag → how many we've handed out so far
-
-    for cat, match in zip(categories, matches):
-        if not match:
-            tag = _OFF_TAG_MAP.get(cat, "grocery")
-            tag_pool[tag] = []  # placeholder; filled below
-
-    async with httpx.AsyncClient(timeout=8.0) as client:
-        for tag in list(tag_pool.keys()):
-            try:
-                resp = await client.get(
-                    "https://world.openfoodfacts.org/cgi/search.pl",
-                    params={
-                        "action":    "process",
-                        "tagtype_0": "categories",
-                        "tag_0":     tag,
-                        "sort_by":   "popularity",
-                        "page_size": "20",   # fetch 20 so multiple items can differ
-                        "json":      "1",
-                        "fields":    "product_name,brands,nutriscore_grade,image_front_small_url,url",
-                    }
-                )
-                products = resp.json().get("products", [])
-                suggestions = []
-                for p in products:
-                    name = (p.get("product_name") or "").strip()
-                    if not name:
-                        continue
-                    suggestions.append({
-                        "name":       name,
-                        "brand":      p.get("brands", ""),
-                        "nutriscore": p.get("nutriscore_grade", ""),
-                        "image_url":  p.get("image_front_small_url", ""),
-                        "off_url":    p.get("url", ""),
-                    })
-                tag_pool[tag] = suggestions
-                tag_counters[tag] = 0
-                logger.info(f"[OFF] tag='{tag}' → {len(suggestions)} products fetched")
-            except Exception as e:
-                logger.warning(f"[OFF] API error for tag '{tag}': {e}")
-                tag_pool[tag] = []
-                tag_counters[tag] = 0
-
-    # Step 2: assign a distinct 3-item window to each unmatched detection
-    results = []
-    for cat, match in zip(categories, matches):
-        if match:
-            results.append(None)
-            continue
-
-        tag  = _OFF_TAG_MAP.get(cat, "grocery")
-        pool = tag_pool.get(tag, [])
-
-        if not pool:
-            results.append([])
-            continue
-
-        # Slide a window of 3 forward for each request within this tag
-        offset = tag_counters.get(tag, 0)
-        window = pool[offset: offset + 3]
-        # If we've exhausted the pool, wrap around
-        if not window:
-            offset = 0
-            window = pool[:3]
-        tag_counters[tag] = offset + 3
-
-        results.append(window)
-
-    return results
-
-
 # ── Stage 2 + 3 pipeline endpoint ────────────────────────────────
 class PipelineRequest(BaseModel):
     event_id:   int
@@ -919,15 +774,29 @@ async def run_pipeline(
     embeddings = extract_embeddings_batch(crops)
     matches    = find_best_matches(embeddings, refs)
 
-    # ── Stage 3b: Open Food Facts fallback for unmatched items ────
-    # For items not in the local library, query Open Food Facts API
-    # using the Stage 2 category. Returns product suggestions with no
-    # local image maintenance required.
-    off_suggestions = await _query_open_food_facts_batch(
-        [cat_results[i][0] if i < len(cat_results) else "General"
-         for i in range(len(detections))],
-        matches
-    )
+    # ── Stage 3b: LLM identification for unmatched items ─────────
+    # Crops that didn't match the library are identified by GPT-4o / Gemini /
+    # Groq (same provider chain as /identify-batch) as a single batched strip.
+    unmatched_indices = [i for i, m in enumerate(matches) if not m]
+    llm_names: dict[int, dict] = {}   # original index → {name, brand}
+
+    if unmatched_indices:
+        unmatched_batch = [detections[i] for i in unmatched_indices]
+        try:
+            llm_items, llm_provider = await _run_batch(
+                image, iw, ih, unmatched_batch, batch_start=0
+            )
+            logger.info(
+                f"[pipeline] Stage 3b LLM: {len(llm_items)} names via {llm_provider}"
+            )
+            for j, orig_i in enumerate(unmatched_indices):
+                if j < len(llm_items):
+                    llm_names[orig_i] = {
+                        "name":  llm_items[j].get("name", ""),
+                        "brand": llm_items[j].get("brand", ""),
+                    }
+        except Exception as e:
+            logger.warning(f"[pipeline] Stage 3b LLM failed: {e}")
 
     # ── Enrich detections ─────────────────────────────────────────
     enriched = []
@@ -937,20 +806,20 @@ async def run_pipeline(
     for i, d in enumerate(detections):
         cat, cat_conf = cat_results[i] if i < len(cat_results) else ("General", 0.5)
         match = matches[i] if i < len(matches) else None
-        off   = off_suggestions[i] if i < len(off_suggestions) else None
+        llm   = llm_names.get(i)
 
         enriched_d = {
             **d,
             # Stage 2
             "category":            cat,
             "category_confidence": round(cat_conf, 3),
-            # Stage 3 — local library match
-            "matched_product":     match["product_name"]     if match else None,
-            "product_id":          match["product_id"]       if match else None,
-            "match_confidence":    match["match_confidence"]  if match else None,
+            # Stage 3 — local library match (highest confidence)
+            "matched_product":     match["product_name"]      if match else (llm["name"]  if llm else None),
+            "product_id":          match["product_id"]        if match else None,
+            "match_confidence":    match["match_confidence"]   if match else None,
+            "brand":               llm["brand"]               if (llm and not match) else None,
+            "llm_identified":      (not match) and bool(llm and llm.get("name")),
             "stage":               3 if match else 2,
-            # Stage 3b — Open Food Facts suggestions (when no library match)
-            "off_suggestions":     off if not match else None,
         }
         enriched.append(enriched_d)
 

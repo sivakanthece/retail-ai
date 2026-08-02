@@ -1169,41 +1169,23 @@ export default function Detection() {
                           </div>
                         </td>
                         <td>
-                          {d.matched_product
-                            ? <span style={{ fontWeight:600, color:'#1e293b', fontSize:13 }}>{d.matched_product}</span>
-                            : d.off_suggestions?.length > 0
-                              ? (
-                                <div>
-                                  <div style={{ fontSize:10, color:'#7c3aed', fontWeight:700, marginBottom:4 }}>
-                                    🌐 Open Food Facts suggestions:
-                                  </div>
-                                  {d.off_suggestions.map((s, si) => (
-                                    <div key={si} style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
-                                      {s.image_url && (
-                                        <img src={s.image_url} alt="" style={{ width:24, height:24, objectFit:'contain', borderRadius:3 }} />
-                                      )}
-                                      <div>
-                                        <a href={s.off_url} target="_blank" rel="noreferrer"
-                                           style={{ fontSize:11, color:'#1d4ed8', fontWeight:600, textDecoration:'none' }}>
-                                          {s.name}
-                                        </a>
-                                        {s.brand && <span style={{ fontSize:10, color:'#64748b' }}> · {s.brand}</span>}
-                                        {s.nutriscore && (
-                                          <span style={{
-                                            marginLeft:4, padding:'1px 5px', borderRadius:3, fontSize:9, fontWeight:700,
-                                            background: s.nutriscore === 'a' ? '#16a34a' : s.nutriscore === 'b' ? '#65a30d' : s.nutriscore === 'c' ? '#ca8a04' : '#dc2626',
-                                            color:'white',
-                                          }}>
-                                            {s.nutriscore.toUpperCase()}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )
-                              : <span style={{ color:'#94a3b8', fontSize:12 }}>Not in library</span>
-                          }
+                          {d.matched_product ? (
+                            <div>
+                              <span style={{ fontWeight:600, color:'#1e293b', fontSize:13 }}>{d.matched_product}</span>
+                              {d.llm_identified ? (
+                                <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
+                                  background:'#ede9fe', color:'#7c3aed', fontWeight:700 }}>AI</span>
+                              ) : (
+                                <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
+                                  background:'#dcfce7', color:'#15803d', fontWeight:700 }}>Library</span>
+                              )}
+                              {d.brand && (
+                                <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{d.brand}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ color:'#94a3b8', fontSize:12 }}>Not identified</span>
+                          )}
                         </td>
                         <td>
                           {d.match_confidence

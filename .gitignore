@@ -63,3 +63,11 @@ Thumbs.db
 # ── Misc ──────────────────────────────────────────────────────────────────────
 *.bak
 outputs/
+
+# ── PPTX build artifacts (slide preview images) ───────────────────────────────
+slide-*.jpg
+
+# ── Loose demo images in repo root (kept in demo_images/ instead) ────────────
+/shelf_beverages.jpg
+/shelf_dairy.jpg
+/shelf_snacks.jpg

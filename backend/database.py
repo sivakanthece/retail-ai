@@ -1,18 +1,9 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum, Text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum, Text, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 import enum
-import os
 from datetime import datetime
 from config import settings
-
-# Ensure the parent directory for a SQLite file exists (e.g. /data on HF Spaces)
-if settings.DATABASE_URL.startswith("sqlite"):
-    # Extract the file path from sqlite:///path or sqlite:////abs/path
-    db_path = settings.DATABASE_URL.replace("sqlite:///", "")
-    if db_path and db_path != ":memory:":
-        db_dir = os.path.dirname(os.path.abspath(db_path))
-        os.makedirs(db_dir, exist_ok=True)
 
 # SQLite needs check_same_thread=False; PostgreSQL needs pool settings
 if settings.DATABASE_URL.startswith("sqlite"):
@@ -107,6 +98,29 @@ class ProductReference(Base):
     image_path   = Column(String, nullable=False)               # saved crop file path
     embedding    = Column(Text,   nullable=False)               # JSON list of 512 floats
     created_at   = Column(DateTime, default=datetime.utcnow)
+
+class Planogram(Base):
+    """
+    Expected shelf layout — one row per product position.
+    Used as a Stage 3.5 prior: if CLIP library doesn't match,
+    look up (shelf_id, row, col) to get the expected product name.
+    """
+    __tablename__ = "planograms"
+    id             = Column(Integer, primary_key=True, index=True)
+    store_id       = Column(String, default="default", index=True)
+    shelf_id       = Column(String, nullable=False, index=True)   # e.g. SHELF-A1
+    shelf_name     = Column(String)                                # e.g. Beverages Aisle
+    row            = Column(Integer, nullable=False)               # 1 = top row
+    col            = Column(Integer, nullable=False)               # 1 = leftmost
+    product_name   = Column(String, nullable=False)
+    brand          = Column(String)
+    sku            = Column(String)
+    category       = Column(String)
+    facings        = Column(Integer, default=1)
+    unit_price_usd = Column(Float, default=0.0)
+    planogram_notes= Column(Text)
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)

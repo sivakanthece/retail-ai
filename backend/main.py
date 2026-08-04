@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from database import init_db
-from routers import auth, detection, inventory, nlq, analytics, library
+from routers import auth, detection, inventory, nlq, analytics, library, planogram
 import os
 
 FRONTEND_BUILD = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
@@ -79,6 +79,7 @@ app.include_router(inventory.router)
 app.include_router(nlq.router)
 app.include_router(analytics.router)
 app.include_router(library.router)
+app.include_router(planogram.router)
 
 @app.get("/health")
 def health():

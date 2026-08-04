@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database import get_db, DetectionEvent, Inventory, Product, Alert, ProductReference
+from database import get_db, DetectionEvent, Inventory, Product, Alert, ProductReference, Planogram
 from security import get_current_user, User
 from config import settings
 from pydantic import BaseModel
@@ -712,7 +712,8 @@ def _map_to_retail_category(cls_name: str) -> str:
 # ── Stage 2 + 3 pipeline endpoint ────────────────────────────────
 class PipelineRequest(BaseModel):
     event_id:   int
-    detections: list   # [{bbox, confidence, ...}]
+    detections: list          # [{bbox, confidence, ...}]
+    shelf_id:   str = "SHELF-A1"   # which planogram shelf to check against
 
 @router.post("/pipeline")
 async def run_pipeline(
@@ -774,22 +775,73 @@ async def run_pipeline(
     embeddings = extract_embeddings_batch(crops)
     matches    = find_best_matches(embeddings, refs)
 
-    # ── Stage 3b: LLM identification for unmatched items ─────────
-    # Crops that didn't match the library are identified by GPT-4o / Gemini /
-    # Groq (same provider chain as /identify-batch) as a single batched strip.
-    unmatched_indices = [i for i, m in enumerate(matches) if not m]
-    llm_names: dict[int, dict] = {}   # original index → {name, brand}
+    # ── Assign grid positions (row, col) from bounding box centres ─
+    # Sort by y_centre to determine row bands, then by x_centre for col.
+    # Works even when shelf rows aren't perfectly uniform.
+    def _assign_grid(dets: list, img_h: int, num_rows: int = 3) -> list[tuple[int, int]]:
+        """Return (row, col) for each detection using y-band bucketing."""
+        if not dets:
+            return []
+        band_h = img_h / num_rows
+        # Compute centre coords
+        centres = [
+            ((d["bbox"][1] + d["bbox"][3]) / 2, (d["bbox"][0] + d["bbox"][2]) / 2)
+            for d in dets
+        ]
+        rows = [min(int(yc / band_h), num_rows - 1) + 1 for yc, _ in centres]
 
-    if unmatched_indices:
-        unmatched_batch = [detections[i] for i in unmatched_indices]
+        # Within each row, rank by x_centre to assign col
+        from collections import defaultdict
+        row_groups: dict[int, list] = defaultdict(list)
+        for idx, (r, (yc, xc)) in enumerate(zip(rows, centres)):
+            row_groups[r].append((xc, idx))
+
+        col_map = {}
+        for r, items in row_groups.items():
+            items.sort(key=lambda x: x[0])  # left → right
+            for col_rank, (_, orig_idx) in enumerate(items, start=1):
+                col_map[orig_idx] = col_rank
+
+        return [(rows[i], col_map.get(i, 1)) for i in range(len(dets))]
+
+    grid_positions = _assign_grid(detections, ih)
+
+    # ── Stage 3.5: planogram lookup for library-unmatched items ───
+    # Query the planogram for the first shelf found in DB (demo: single shelf).
+    # In production, the caller passes shelf_id in the payload.
+    shelf_id = getattr(payload, "shelf_id", None) or "SHELF-A1"
+    pog_rows  = db.query(Planogram).filter(Planogram.shelf_id == shelf_id).all()
+    pog_index: dict[tuple[int,int], Planogram] = {(p.row, p.col): p for p in pog_rows}
+    pog_hits: dict[int, dict] = {}   # detection index → {name, brand, sku}
+
+    for i, m in enumerate(matches):
+        if m:
+            continue  # already matched by library — skip planogram
+        row, col = grid_positions[i] if i < len(grid_positions) else (0, 0)
+        pog = pog_index.get((row, col))
+        if pog:
+            pog_hits[i] = {
+                "name":  pog.product_name,
+                "brand": pog.brand or "",
+                "sku":   pog.sku   or "",
+            }
+            logger.info(f"[pipeline] Stage 3.5 planogram hit: R{row}C{col} → {pog.product_name}")
+
+    # ── Stage 3b: LLM identification — only for items still unmatched ──
+    still_unmatched = [
+        i for i, m in enumerate(matches)
+        if not m and i not in pog_hits
+    ]
+    llm_names: dict[int, dict] = {}
+
+    if still_unmatched:
+        unmatched_batch = [detections[i] for i in still_unmatched]
         try:
             llm_items, llm_provider = await _run_batch(
                 image, iw, ih, unmatched_batch, batch_start=0
             )
-            logger.info(
-                f"[pipeline] Stage 3b LLM: {len(llm_items)} names via {llm_provider}"
-            )
-            for j, orig_i in enumerate(unmatched_indices):
+            logger.info(f"[pipeline] Stage 3b LLM: {len(llm_items)} names via {llm_provider}")
+            for j, orig_i in enumerate(still_unmatched):
                 if j < len(llm_items):
                     llm_names[orig_i] = {
                         "name":  llm_items[j].get("name", ""),
@@ -798,48 +850,112 @@ async def run_pipeline(
         except Exception as e:
             logger.warning(f"[pipeline] Stage 3b LLM failed: {e}")
 
-    # ── Enrich detections ─────────────────────────────────────────
+    # ── Enrich detections + compliance ────────────────────────────
     enriched = []
-    stage3_matched   = 0
-    stage3_unmatched = 0
+    stage3_matched     = 0
+    stage3_unmatched   = 0
+    pog_matched        = 0
+    compliance_results = []
 
     for i, d in enumerate(detections):
         cat, cat_conf = cat_results[i] if i < len(cat_results) else ("General", 0.5)
         match = matches[i] if i < len(matches) else None
+        pog   = pog_hits.get(i)
         llm   = llm_names.get(i)
+        row, col = grid_positions[i] if i < len(grid_positions) else (0, 0)
+
+        # Priority: library > planogram > LLM > None
+        if match:
+            final_name  = match["product_name"]
+            final_brand = None
+            final_sku   = None
+            id_stage    = 3
+            stage3_matched += 1
+        elif pog:
+            final_name  = pog["name"]
+            final_brand = pog["brand"]
+            final_sku   = pog["sku"]
+            id_stage    = 3   # treat planogram match as Stage 3 confidence
+            pog_matched += 1
+        elif llm:
+            final_name  = llm.get("name") or None
+            final_brand = llm.get("brand") or None
+            final_sku   = None
+            id_stage    = 2
+            stage3_unmatched += 1
+        else:
+            final_name  = None
+            final_brand = None
+            final_sku   = None
+            id_stage    = 2
+            stage3_unmatched += 1
+
+        # Compliance: compare final_name against planogram expectation
+        pog_entry = pog_index.get((row, col))
+        if pog_entry is None:
+            compliance = "no_planogram"
+        elif not final_name:
+            compliance = "unidentified"
+        else:
+            det_low  = final_name.lower()
+            exp_low  = pog_entry.product_name.lower()
+            words_ok = any(w in det_low for w in exp_low.split() if len(w) > 3)
+            compliance = "ok" if words_ok else "mismatch"
+
+        compliance_results.append({
+            "row":      row,
+            "col":      col,
+            "detected": final_name,
+            "expected": pog_entry.product_name if pog_entry else None,
+            "status":   compliance,
+        })
 
         enriched_d = {
             **d,
-            # Stage 2
             "category":            cat,
             "category_confidence": round(cat_conf, 3),
-            # Stage 3 — local library match (highest confidence)
-            "matched_product":     match["product_name"]      if match else (llm["name"]  if llm else None),
-            "product_id":          match["product_id"]        if match else None,
-            "match_confidence":    match["match_confidence"]   if match else None,
-            "brand":               llm["brand"]               if (llm and not match) else None,
-            "llm_identified":      (not match) and bool(llm and llm.get("name")),
-            "stage":               3 if match else 2,
+            "matched_product":     final_name,
+            "product_id":          match["product_id"] if match else None,
+            "match_confidence":    match["match_confidence"] if match else None,
+            "brand":               final_brand,
+            "sku":                 final_sku,
+            "llm_identified":      (not match and not pog) and bool(llm and llm.get("name")),
+            "planogram_identified": bool(pog and not match),
+            "stage":               id_stage,
+            "grid_row":            row,
+            "grid_col":            col,
+            "compliance":          compliance,
         }
         enriched.append(enriched_d)
 
-        if match:
-            stage3_matched += 1
-        else:
-            stage3_unmatched += 1
+    # Compliance summary
+    ok_count = sum(1 for c in compliance_results if c["status"] == "ok")
+    compliance_rate = round(ok_count / len(compliance_results) * 100, 1) if compliance_results else 0
 
     from vision_pipeline import _clip_ready, _clip_error
     return {
         "event_id":   payload.event_id,
         "detections": enriched,
         "pipeline_stats": {
-            "stage1_total":      len(detections),
-            "stage2_classified": len(detections),
-            "stage3_matched":    stage3_matched,
-            "stage3_unmatched":  stage3_unmatched,
-            "library_size":      len(refs),
-            "clip_ready":        _clip_ready,
-            "clip_error":        str(_clip_error) if _clip_error else None,
+            "stage1_total":        len(detections),
+            "stage2_classified":   len(detections),
+            "stage3_matched":      stage3_matched,
+            "stage3_planogram":    pog_matched,
+            "stage3_llm":          len([l for l in llm_names.values() if l.get("name")]),
+            "stage3_unmatched":    stage3_unmatched,
+            "library_size":        len(refs),
+            "planogram_size":      len(pog_rows),
+            "clip_ready":          _clip_ready,
+            "clip_error":          str(_clip_error) if _clip_error else None,
+        },
+        "compliance": {
+            "shelf_id":        shelf_id,
+            "compliance_rate": compliance_rate,
+            "ok":              ok_count,
+            "mismatch":        sum(1 for c in compliance_results if c["status"] == "mismatch"),
+            "unidentified":    sum(1 for c in compliance_results if c["status"] == "unidentified"),
+            "no_planogram":    sum(1 for c in compliance_results if c["status"] == "no_planogram"),
+            "details":         compliance_results,
         },
     }
 

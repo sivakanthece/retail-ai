@@ -6,6 +6,7 @@ import InventoryPage from './pages/InventoryPage';
 import NLQPage from './pages/NLQPage';
 import AlertsPage from './pages/AlertsPage';
 import ProductLibrary from './pages/ProductLibrary';
+import Planogram from './pages/Planogram';
 import Login from './pages/Login';
 
 const STYLES = `
@@ -70,6 +71,7 @@ function Sidebar({ user, onLogout }) {
     { path: '/', label: '📊 Dashboard' },
     { path: '/detection', label: '🔍 Detection' },
     { path: '/library',   label: '🏪 Product Library' },
+    { path: '/planogram', label: '📋 Planogram' },
     { path: '/inventory', label: '📦 Inventory' },
     { path: '/nlq', label: '🤖 AI Query' },
     { path: '/alerts', label: '🔔 Alerts' },
@@ -126,6 +128,7 @@ export default function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/detection" element={<Detection />} />
                 <Route path="/library"   element={<ProductLibrary />} />
+                <Route path="/planogram" element={<Planogram />} />
                 <Route path="/inventory" element={<InventoryPage user={user} />} />
                 <Route path="/nlq" element={<NLQPage />} />
                 <Route path="/alerts" element={<AlertsPage />} />

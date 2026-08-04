@@ -741,6 +741,8 @@ export default function Detection() {
   const [bulkSave,        setBulkSave]        = useState(null); // {done, total, type, currentName}
   const [error,           setError]           = useState('');
   const [preview,         setPreview]         = useState(null);
+  const [shelfId,         setShelfId]         = useState('SHELF-A1');
+  const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
   const mobileInputRef = useRef();
@@ -749,7 +751,7 @@ export default function Detection() {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
     setError('');
     setResult(null); setGroups(null); setSavedNames({}); setSavedToLibrary({});
-    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0);
+    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null);
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
@@ -772,9 +774,10 @@ export default function Detection() {
       setPipelineStage(2);
       await new Promise(r => setTimeout(r, 300)); // brief pause so stage 2 badge animates
       setPipelineStage(3);
-      const pr = await detectionAPI.pipeline(uploadResult.event_id, uploadResult.detections);
+      const pr = await detectionAPI.pipeline(uploadResult.event_id, uploadResult.detections, shelfId);
       setEnriched(pr.data.detections);
       setPipelineStats(pr.data.pipeline_stats);
+      if (pr.data.compliance) setCompliance(pr.data.compliance);
     } catch (e) {
       // Pipeline failure is non-fatal — still show YOLO results
       console.warn('Pipeline (Stage 2/3) failed:', e.response?.data?.detail || e.message);
@@ -983,6 +986,21 @@ export default function Detection() {
           </div>
         )}
 
+        {/* Shelf selector for planogram compliance */}
+        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>📋 Planogram Shelf:</label>
+          <select
+            value={shelfId}
+            onChange={e => setShelfId(e.target.value)}
+            style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, color: '#1e293b' }}
+          >
+            <option value="SHELF-A1">SHELF-A1 — Beverages</option>
+            <option value="SHELF-B2">SHELF-B2 — Snacks</option>
+            <option value="SHELF-C3">SHELF-C3 — Dairy</option>
+          </select>
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>Select which shelf's planogram to check against</span>
+        </div>
+
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
           <button className="btn"
@@ -1137,9 +1155,39 @@ export default function Detection() {
                 <div style={{ fontSize:12, color:'#64748b' }}>
                   ✅ Stage 3 matched: <b style={{ color:'#16a34a' }}>{pipelineStats?.stage3_matched}</b>
                   &nbsp;·&nbsp;
-                  ❓ Unmatched: <b style={{ color:'#d97706' }}>{pipelineStats?.stage3_unmatched}</b>
+                  📋 Planogram: <b style={{ color:'#1d4ed8' }}>{pipelineStats?.stage3_planogram ?? 0}</b>
+                  &nbsp;·&nbsp;
+                  ❓ Unmatched: <b style={{ color:'#d97706' }}>{pipelineStats?.stage3_unmatched ?? '—'}</b>
                 </div>
               </div>
+
+              {/* Compliance summary bar */}
+              {compliance && (
+                <div style={{
+                  display:'flex', gap:12, flexWrap:'wrap', marginBottom:14,
+                  padding:'12px 14px', background:'#f8fafc', borderRadius:8,
+                  border:'1px solid #e2e8f0',
+                }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#0f172a', marginRight:4 }}>
+                    📋 Planogram Compliance:
+                  </div>
+                  <span style={{ fontWeight:800, fontSize:16, color: compliance.compliance_rate >= 80 ? '#15803d' : compliance.compliance_rate >= 50 ? '#d97706' : '#dc2626' }}>
+                    {compliance.compliance_rate}%
+                  </span>
+                  {[
+                    { label:'✅ OK',          val: compliance.ok,           bg:'#dcfce7', color:'#15803d' },
+                    { label:'⚠️ Mismatch',   val: compliance.mismatch,     bg:'#fee2e2', color:'#dc2626' },
+                    { label:'❓ Unidentified',val: compliance.unidentified,  bg:'#fff7ed', color:'#c2410c' },
+                    { label:'— No Data',      val: compliance.no_planogram, bg:'#f1f5f9', color:'#64748b' },
+                  ].map(b => (
+                    <span key={b.label} style={{
+                      background:b.bg, color:b.color,
+                      padding:'2px 10px', borderRadius:4, fontSize:12, fontWeight:600,
+                    }}>{b.label}: {b.val}</span>
+                  ))}
+                </div>
+              )}
+
               <div style={{ overflowX:'auto' }}>
                 <table>
                   <thead>
@@ -1147,13 +1195,23 @@ export default function Detection() {
                       <th>Preview</th>
                       <th>Stage 2 — Category</th>
                       <th>Stage 3 — Matched Product</th>
+                      <th>Grid</th>
+                      <th>Compliance</th>
                       <th>Match Conf.</th>
                       <th>YOLO Conf.</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {enriched.map((d, i) => (
+                    {enriched.map((d, i) => {
+                      const complianceColors = {
+                        ok:           { bg:'#dcfce7', color:'#15803d', label:'✅ OK' },
+                        mismatch:     { bg:'#fee2e2', color:'#dc2626', label:'⚠️ Mismatch' },
+                        unidentified: { bg:'#fff7ed', color:'#c2410c', label:'❓ Unidentified' },
+                        no_planogram: { bg:'#f1f5f9', color:'#64748b', label:'— No Data' },
+                      };
+                      const cs = complianceColors[d.compliance] || complianceColors.no_planogram;
+                      return (
                       <tr key={i}>
                         <td><CropThumb imageSrc={preview} bbox={d.bbox} size={52} /></td>
                         <td>
@@ -1172,7 +1230,10 @@ export default function Detection() {
                           {d.matched_product ? (
                             <div>
                               <span style={{ fontWeight:600, color:'#1e293b', fontSize:13 }}>{d.matched_product}</span>
-                              {d.llm_identified ? (
+                              {d.planogram_identified ? (
+                                <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
+                                  background:'#dbeafe', color:'#1d4ed8', fontWeight:700 }}>Planogram</span>
+                              ) : d.llm_identified ? (
                                 <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
                                   background:'#ede9fe', color:'#7c3aed', fontWeight:700 }}>AI</span>
                               ) : (
@@ -1186,6 +1247,16 @@ export default function Detection() {
                           ) : (
                             <span style={{ color:'#94a3b8', fontSize:12 }}>Not identified</span>
                           )}
+                        </td>
+                        <td style={{ fontSize:12, color:'#64748b', fontFamily:'monospace' }}>
+                          {d.grid_row != null ? `R${d.grid_row}C${d.grid_col}` : '—'}
+                        </td>
+                        <td>
+                          <span style={{
+                            background: cs.bg, color: cs.color,
+                            padding:'2px 8px', borderRadius:4,
+                            fontSize:11, fontWeight:700,
+                          }}>{cs.label}</span>
                         </td>
                         <td>
                           {d.match_confidence

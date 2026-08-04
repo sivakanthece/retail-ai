@@ -38,8 +38,8 @@ export const detectionAPI = {
     form.append('file', file);
     return api.post('/detection/upload', form);
   },
-  pipeline: (eventId, detections, shelfId = 'SHELF-A1') =>
-    api.post('/detection/pipeline', { event_id: eventId, detections, shelf_id: shelfId }),
+  pipeline: (eventId, detections, shelfId = 'SHELF-A1', usePlanogram = true) =>
+    api.post('/detection/pipeline', { event_id: eventId, detections, shelf_id: shelfId, use_planogram: usePlanogram }),
   addToLibrary: (eventId, bbox, productName, productId = null) =>
     api.post('/detection/add-to-library', { event_id: eventId, bbox, product_name: productName, product_id: productId }),
   saveProduct: (data) => api.post('/detection/save-product', data),

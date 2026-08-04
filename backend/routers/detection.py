@@ -711,9 +711,10 @@ def _map_to_retail_category(cls_name: str) -> str:
 
 # ── Stage 2 + 3 pipeline endpoint ────────────────────────────────
 class PipelineRequest(BaseModel):
-    event_id:   int
-    detections: list          # [{bbox, confidence, ...}]
-    shelf_id:   str = "SHELF-A1"   # which planogram shelf to check against
+    event_id:      int
+    detections:    list           # [{bbox, confidence, ...}]
+    shelf_id:      str  = "SHELF-A1"   # which planogram shelf to check against
+    use_planogram: bool = True    # set False to skip planogram lookup & compliance
 
 @router.post("/pipeline")
 async def run_pipeline(
@@ -804,28 +805,37 @@ async def run_pipeline(
 
         return [(rows[i], col_map.get(i, 1)) for i in range(len(dets))]
 
-    grid_positions = _assign_grid(detections, ih)
+    # ── Stage 3.5: planogram lookup (optional) ────────────────────
+    shelf_id      = getattr(payload, "shelf_id", None) or "SHELF-A1"
+    use_planogram = getattr(payload, "use_planogram", True)
 
-    # ── Stage 3.5: planogram lookup for library-unmatched items ───
-    # Query the planogram for the first shelf found in DB (demo: single shelf).
-    # In production, the caller passes shelf_id in the payload.
-    shelf_id = getattr(payload, "shelf_id", None) or "SHELF-A1"
-    pog_rows  = db.query(Planogram).filter(Planogram.shelf_id == shelf_id).all()
+    if use_planogram:
+        pog_rows = db.query(Planogram).filter(Planogram.shelf_id == shelf_id).all()
+    else:
+        pog_rows = []
+
     pog_index: dict[tuple[int,int], Planogram] = {(p.row, p.col): p for p in pog_rows}
-    pog_hits: dict[int, dict] = {}   # detection index → {name, brand, sku}
+    pog_hits:  dict[int, dict] = {}   # detection index → {name, brand, sku}
 
-    for i, m in enumerate(matches):
-        if m:
-            continue  # already matched by library — skip planogram
-        row, col = grid_positions[i] if i < len(grid_positions) else (0, 0)
-        pog = pog_index.get((row, col))
-        if pog:
-            pog_hits[i] = {
-                "name":  pog.product_name,
-                "brand": pog.brand or "",
-                "sku":   pog.sku   or "",
-            }
-            logger.info(f"[pipeline] Stage 3.5 planogram hit: R{row}C{col} → {pog.product_name}")
+    # Auto-detect shelf row count from planogram so grid bands are correct.
+    # Falls back to 3 when planogram is empty or disabled.
+    num_rows_from_pog = max((p.row for p in pog_rows), default=0)
+    num_rows          = num_rows_from_pog if num_rows_from_pog > 0 else 3
+    grid_positions    = _assign_grid(detections, ih, num_rows=num_rows)
+
+    if use_planogram:
+        for i, m in enumerate(matches):
+            if m:
+                continue  # already matched by library — skip planogram
+            row, col = grid_positions[i] if i < len(grid_positions) else (0, 0)
+            pog = pog_index.get((row, col))
+            if pog:
+                pog_hits[i] = {
+                    "name":  pog.product_name,
+                    "brand": pog.brand or "",
+                    "sku":   pog.sku   or "",
+                }
+                logger.info(f"[pipeline] Stage 3.5 planogram hit: R{row}C{col} → {pog.product_name}")
 
     # ── Stage 3b: LLM identification — only for items still unmatched ──
     still_unmatched = [
@@ -891,14 +901,15 @@ async def run_pipeline(
             stage3_unmatched += 1
 
         # Compliance: compare final_name against planogram expectation
-        pog_entry = pog_index.get((row, col))
-        if pog_entry is None:
+        pog_entry = pog_index.get((row, col)) if use_planogram else None
+        if not use_planogram or pog_entry is None:
             compliance = "no_planogram"
         elif not final_name:
             compliance = "unidentified"
         else:
-            det_low  = final_name.lower()
-            exp_low  = pog_entry.product_name.lower()
+            # Normalise hyphens → spaces so "Coca-Cola" matches "Coca Cola"
+            det_low  = final_name.lower().replace("-", " ").replace("_", " ")
+            exp_low  = pog_entry.product_name.lower().replace("-", " ").replace("_", " ")
             words_ok = any(w in det_low for w in exp_low.split() if len(w) > 3)
             compliance = "ok" if words_ok else "mismatch"
 
@@ -945,6 +956,8 @@ async def run_pipeline(
             "stage3_unmatched":    stage3_unmatched,
             "library_size":        len(refs),
             "planogram_size":      len(pog_rows),
+            "planogram_enabled":   use_planogram,
+            "num_rows_detected":   num_rows,
             "clip_ready":          _clip_ready,
             "clip_error":          str(_clip_error) if _clip_error else None,
         },

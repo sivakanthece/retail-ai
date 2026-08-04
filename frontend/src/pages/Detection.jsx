@@ -743,6 +743,7 @@ export default function Detection() {
   const [preview,         setPreview]         = useState(null);
   const [shelfId,         setShelfId]         = useState('');
   const [shelves,         setShelves]         = useState([]);
+  const [usePlanogram,    setUsePlanogram]    = useState(true); // toggle planogram compliance
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
@@ -786,7 +787,7 @@ export default function Detection() {
       setPipelineStage(2);
       await new Promise(r => setTimeout(r, 300)); // brief pause so stage 2 badge animates
       setPipelineStage(3);
-      const pr = await detectionAPI.pipeline(uploadResult.event_id, uploadResult.detections, shelfId);
+      const pr = await detectionAPI.pipeline(uploadResult.event_id, uploadResult.detections, shelfId, usePlanogram);
       setEnriched(pr.data.detections);
       setPipelineStats(pr.data.pipeline_stats);
       if (pr.data.compliance) setCompliance(pr.data.compliance);
@@ -998,24 +999,55 @@ export default function Detection() {
           </div>
         )}
 
-        {/* Shelf selector for planogram compliance */}
-        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>📋 Planogram Shelf:</label>
-          {shelves.length > 0 ? (
-            <select
-              value={shelfId}
-              onChange={e => setShelfId(e.target.value)}
-              style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, color: '#1e293b' }}
+        {/* Planogram toggle + shelf selector */}
+        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {/* Toggle switch */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+            <div
+              onClick={() => setUsePlanogram(p => !p)}
+              style={{
+                width: 42, height: 24, borderRadius: 12, position: 'relative', cursor: 'pointer',
+                background: usePlanogram ? '#1e40af' : '#cbd5e1',
+                transition: 'background 0.2s',
+                flexShrink: 0,
+              }}
             >
-              {shelves.map(s => (
-                <option key={s.shelf_id} value={s.shelf_id}>
-                  {s.shelf_id} — {s.shelf_name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
-              No planogram loaded — import a CSV in the 📋 Planogram page first
+              <div style={{
+                position: 'absolute', top: 3, left: usePlanogram ? 21 : 3,
+                width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                transition: 'left 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
+              📋 Use Planogram
+            </span>
+          </label>
+
+          {/* Shelf selector — only shown when planogram is enabled */}
+          {usePlanogram && (
+            shelves.length > 0 ? (
+              <select
+                value={shelfId}
+                onChange={e => setShelfId(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, color: '#1e293b' }}
+              >
+                {shelves.map(s => (
+                  <option key={s.shelf_id} value={s.shelf_id}>
+                    {s.shelf_id} — {s.shelf_name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+                No planogram loaded — import a CSV in the 📋 Planogram page first
+              </span>
+            )
+          )}
+
+          {!usePlanogram && (
+            <span style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+              Legacy mode — YOLO → CLIP → Library → AI (no compliance check)
             </span>
           )}
         </div>

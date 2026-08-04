@@ -1283,7 +1283,8 @@ export default function Detection() {
                           )}
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>

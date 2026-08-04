@@ -31,12 +31,12 @@ export default function Planogram() {
   const fileRef = useRef();
 
   // ── Load shelf list ───────────────────────────────────────────
-  const loadShelves = async () => {
+  const loadShelves = async (resetSelection = false) => {
     try {
       const r = await api.get('/planogram/shelves');
       const d = r.data;
       setShelves(d.shelves || []);
-      if (d.shelves?.length && !selectedShelf) {
+      if (d.shelves?.length && (resetSelection || !selectedShelf)) {
         setSelected(d.shelves[0].shelf_id);
       }
     } catch (e) { console.error(e); }
@@ -67,8 +67,7 @@ export default function Planogram() {
     try {
       const r = await api.post('/planogram/import-csv?replace_shelf=ALL', form);
       setImportMsg(`Imported ${r.data.inserted} entries successfully.`);
-      await loadShelves();
-      await loadEntries(selectedShelf);
+      await loadShelves(true);  // reset selection to first shelf in new data
     } catch (err) {
       setImportErr(err.response?.data?.detail || String(err));
     }

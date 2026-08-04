@@ -1,0 +1,105 @@
+shelf_id,shelf_name,row,col,product_name,brand,sku,category,facings,unit_price_usd,planogram_notes
+SHELF-BEV-01,Beverages Soft Drinks,1,1,Coca-Cola Classic 330ml Can,Coca-Cola,CC-CLASSIC-330,Soda & Energy Drinks,3,1.49,Top shelf far left — flagship
+SHELF-BEV-01,Beverages Soft Drinks,1,2,Coca-Cola Zero Sugar 330ml Can,Coca-Cola,CC-ZERO-330,Soda & Energy Drinks,3,1.49,Zero sugar variant beside classic
+SHELF-BEV-01,Beverages Soft Drinks,1,3,Schweppes Blue Tonic 330ml Can,Schweppes,SCH-BLUE-330,Mixers & Tonic,2,1.59,Blue cans center-left top
+SHELF-BEV-01,Beverages Soft Drinks,1,4,Fanta Orange 330ml Can,Fanta,FANTA-ORG-330,Soda & Energy Drinks,2,1.29,Yellow-orange cans top center
+SHELF-BEV-01,Beverages Soft Drinks,1,5,Fanta Lemon 330ml Can,Fanta,FANTA-LEM-330,Soda & Energy Drinks,2,1.29,Lemon Fanta top shelf
+SHELF-BEV-01,Beverages Soft Drinks,1,6,Dr Pepper Original 330ml Can,Dr Pepper,DP-ORIG-330,Soda & Energy Drinks,2,1.49,Dr Pepper top right
+SHELF-BEV-01,Beverages Soft Drinks,1,7,Dr Pepper Cherry 330ml Can,Dr Pepper,DP-CHERRY-330,Soda & Energy Drinks,2,1.49,Cherry variant beside original
+SHELF-BEV-01,Beverages Soft Drinks,1,8,Lucozade Energy Original 380ml,Lucozade,LUC-ORIG-380,Soda & Energy Drinks,2,1.89,Orange energy drink far right top
+SHELF-BEV-01,Beverages Soft Drinks,2,1,Fanta Strawberry 330ml Can,Fanta,FANTA-STR-330,Soda & Energy Drinks,3,1.29,Pink Fanta second shelf far left
+SHELF-BEV-01,Beverages Soft Drinks,2,2,Fanta Grape 330ml Can,Fanta,FANTA-GRP-330,Soda & Energy Drinks,3,1.29,Purple Fanta variety
+SHELF-BEV-01,Beverages Soft Drinks,2,3,Fanta Tropical 330ml Can,Fanta,FANTA-TRP-330,Soda & Energy Drinks,3,1.29,Tropical Fanta yellow-green
+SHELF-BEV-01,Beverages Soft Drinks,2,4,Fanta Exotic 330ml Can,Fanta,FANTA-EXO-330,Soda & Energy Drinks,2,1.29,Exotic mixed fruit Fanta
+SHELF-BEV-01,Beverages Soft Drinks,2,5,Sprite Original 330ml Can,Sprite,SPRITE-ORIG-330,Soda & Energy Drinks,2,1.29,Green Sprite cans center
+SHELF-BEV-01,Beverages Soft Drinks,2,6,Sprite Zero Sugar 330ml Can,Sprite,SPRITE-ZERO-330,Soda & Energy Drinks,2,1.29,Sprite Zero variant
+SHELF-BEV-01,Beverages Soft Drinks,2,7,Chupa Chups Cola 250ml Can,Chupa Chups,CHUPA-COLA-250,Soda & Energy Drinks,2,1.59,Novelty branded cola soda
+SHELF-BEV-01,Beverages Soft Drinks,2,8,Schweppes Pink Tonic 250ml Can,Schweppes,SCH-PINK-250,Mixers & Tonic,2,1.79,Pink tonic far right second shelf
+SHELF-BEV-01,Beverages Soft Drinks,3,1,Fanta Orange 1.5L Bottle,Fanta,FANTA-ORG-1500,Soda & Energy Drinks,2,2.49,Large Fanta orange third shelf left
+SHELF-BEV-01,Beverages Soft Drinks,3,2,Sprite Original 1.5L Bottle,Sprite,SPRITE-ORIG-1500,Soda & Energy Drinks,2,2.49,Large green Sprite bottle
+SHELF-BEV-01,Beverages Soft Drinks,3,3,Sprite Zero Sugar 1.5L Bottle,Sprite,SPRITE-ZERO-1500,Soda & Energy Drinks,2,2.49,Large Sprite Zero bottle
+SHELF-BEV-01,Beverages Soft Drinks,3,4,Schweppes Cola 1L Bottle,Schweppes,SCH-COLA-1000,Soda & Energy Drinks,2,2.19,Dark Schweppes cola bottles
+SHELF-BEV-01,Beverages Soft Drinks,3,5,Schweppes Tonic Water 1L Bottle,Schweppes,SCH-TONIC-1000,Mixers & Tonic,2,2.19,Premium Schweppes tonic
+SHELF-BEV-01,Beverages Soft Drinks,3,6,Schweppes Bitter Lemon 1L Bottle,Schweppes,SCH-BITTER-1000,Mixers & Tonic,2,2.19,Schweppes bitter lemon
+SHELF-BEV-01,Beverages Soft Drinks,3,7,Fentimans Rose Lemonade 750ml,Fentimans,FENT-ROSE-750,Mixers & Tonic,2,3.49,Premium botanical rose lemon
+SHELF-BEV-01,Beverages Soft Drinks,3,8,Fentimans Rose Lemonade 750ml,Fentimans,FENT-ROSE-750B,Mixers & Tonic,2,3.49,Second facing premium botanical
+SHELF-BEV-01,Beverages Soft Drinks,4,1,Coca-Cola Classic 2L Bottle,Coca-Cola,CC-CLASSIC-2000,Soda & Energy Drinks,2,3.29,Large Cola bottle bottom left
+SHELF-BEV-01,Beverages Soft Drinks,4,2,Coca-Cola Zero Sugar 2L Bottle,Coca-Cola,CC-ZERO-2000,Soda & Energy Drinks,2,3.29,Large Zero Cola bottle
+SHELF-BEV-01,Beverages Soft Drinks,4,3,Sprite Original 2L Bottle,Sprite,SPRITE-ORIG-2000,Soda & Energy Drinks,2,2.99,Large Sprite green bottle bottom
+SHELF-BEV-01,Beverages Soft Drinks,4,4,Sprite Zero Sugar 2L Bottle,Sprite,SPRITE-ZERO-2000,Soda & Energy Drinks,2,2.99,Large Sprite Zero bottom shelf
+SHELF-BEV-01,Beverages Soft Drinks,4,5,Schweppes Ginger Ale 2L Bottle,Schweppes,SCH-GING-2000,Mixers & Tonic,2,2.89,Large Schweppes ginger ale
+SHELF-BEV-01,Beverages Soft Drinks,4,6,Schweppes Lemonade 2L Bottle,Schweppes,SCH-LEM-2000,Mixers & Tonic,2,2.89,Large Schweppes lemonade
+SHELF-BEV-01,Beverages Soft Drinks,4,7,Craft Cola Original 750ml,O&C Craft,OC-COLA-750,Soda & Energy Drinks,2,4.49,Artisan craft cola bottom right
+SHELF-BEV-01,Beverages Soft Drinks,4,8,Craft Lemonade 750ml,O&C Craft,OC-LEM-750,Soda & Energy Drinks,2,4.49,Artisan craft lemonade
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,1,DanActive Immunity Strawberry 93ml,Danone,DANACT-STR-93,Dairy & Yogurt,4,1.29,Small probiotic drinks top left
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,2,DanActive Immunity Blueberry 93ml,Danone,DANACT-BLU-93,Dairy & Yogurt,4,1.29,Blueberry probiotic drink
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,3,Yoplait Go-Gurt Strawberry,Yoplait,YOPLAIT-GOGURT-STR,Dairy & Yogurt,3,0.99,Kids yogurt tubes top shelf
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,4,Yoplait Go-Gurt Mixed Berry,Yoplait,YOPLAIT-GOGURT-MIX,Dairy & Yogurt,3,0.99,Mixed berry yogurt tubes
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,5,Horizon Organic Whole Milk 32oz,Horizon,HOR-WHOLE-32,Dairy & Milk,2,4.49,Organic white carton top right
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,6,Horizon Organic 2% Milk 32oz,Horizon,HOR-2PCT-32,Dairy & Milk,2,4.29,Organic 2% milk carton
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,7,Almond Breeze Original 32oz,Blue Diamond,ALM-ORIG-32,Plant-Based Milk,2,3.99,Almond milk blue carton top right
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,8,Almond Breeze Vanilla 32oz,Blue Diamond,ALM-VAN-32,Plant-Based Milk,2,3.99,Vanilla almond milk carton
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,1,Silk Oat Yeah Oatmilk Original 52oz,Silk,SILK-OAT-ORIG-52,Plant-Based Milk,2,4.99,Large Silk oat milk second shelf left
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,2,Silk Oat Yeah Oatmilk Vanilla 52oz,Silk,SILK-OAT-VAN-52,Plant-Based Milk,2,4.99,Vanilla oat milk large
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,3,Fairlife Whole Milk 52oz,Fairlife,FAIR-WHOLE-52,Dairy & Milk,2,5.49,Ultra-filtered whole milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,4,Fairlife 2% Reduced Fat Milk 52oz,Fairlife,FAIR-2PCT-52,Dairy & Milk,2,5.49,Ultra-filtered 2% milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,5,Almond Breeze Chocolate 32oz,Blue Diamond,ALM-CHOC-32,Plant-Based Milk,2,3.99,Chocolate almond milk brown carton
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,6,Almond Breeze Unsweetened 32oz,Blue Diamond,ALM-UNSW-32,Plant-Based Milk,2,3.99,Unsweetened almond milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,7,Almond Breeze Vanilla Unsweetened 32oz,Blue Diamond,ALM-VAN-UNSW-32,Plant-Based Milk,2,3.99,Vanilla unsweetened almond milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,8,Good Karma Flaxmilk Original 32oz,Good Karma,GK-FLAX-ORIG-32,Plant-Based Milk,2,4.29,Flax milk right side second shelf
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,1,Silk Almond Original 64oz,Silk,SILK-ALM-ORIG-64,Plant-Based Milk,2,5.49,Large Silk almond milk third shelf
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,2,Silk Almond Vanilla 64oz,Silk,SILK-ALM-VAN-64,Plant-Based Milk,2,5.49,Large vanilla Silk almond
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,3,Oatly Oat Milk Original 64oz,Oatly,OATLY-ORIG-64,Plant-Based Milk,2,5.99,Swedish oat milk large carton
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,4,Oatly Oat Milk Barista Edition,Oatly,OATLY-BAR-32,Plant-Based Milk,2,5.99,Barista oat milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,5,Almond Breeze Original 64oz,Blue Diamond,ALM-ORIG-64,Plant-Based Milk,2,5.29,Large almond breeze center
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,6,Almond Breeze Vanilla 64oz,Blue Diamond,ALM-VAN-64,Plant-Based Milk,2,5.29,Large vanilla almond breeze
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,7,Almond Breeze Unsweetened 64oz,Blue Diamond,ALM-UNSW-64,Plant-Based Milk,2,5.29,Large unsweetened almond breeze
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,8,Ripple Pea Milk Original 48oz,Ripple,RIP-ORIG-48,Plant-Based Milk,2,5.99,Pea protein milk far right
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,1,Silk Soy Milk Original 64oz,Silk,SILK-SOY-ORIG-64,Plant-Based Milk,2,4.49,Soy milk bottom shelf left
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,2,Silk Soy Milk Vanilla 64oz,Silk,SILK-SOY-VAN-64,Plant-Based Milk,2,4.49,Vanilla soy milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,3,Silk Coconut Milk Original 64oz,Silk,SILK-COC-ORIG-64,Plant-Based Milk,2,4.79,Coconut milk carton bottom
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,4,Good Karma Oatmilk Original 32oz,Good Karma,GK-OAT-ORIG-32,Plant-Based Milk,2,4.49,Good Karma oat milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,5,Califia Farms Oat Milk 48oz,Califia,CAL-OAT-48,Plant-Based Milk,2,5.49,Colorful Califia bottle bottom
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,6,Califia Farms Almond Milk 48oz,Califia,CAL-ALM-48,Plant-Based Milk,2,5.49,Califia almond milk bottle
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,7,Ripple Pea Milk Vanilla 48oz,Ripple,RIP-VAN-48,Plant-Based Milk,2,5.99,Vanilla pea milk
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,8,Lactaid Whole Milk 96oz,Lactaid,LACT-WHOLE-96,Dairy & Milk,2,6.99,Lactose-free whole milk far right bottom
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,1,Doritos Nacho Cheese 200g,Doritos,DOR-NACHO-200,Chips & Crisps,2,3.49,Colorful bags very top left
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,2,Doritos Cool Ranch 200g,Doritos,DOR-RANCH-200,Chips & Crisps,2,3.49,Blue Doritos bag top row
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,3,Lay's Classic Salted 200g,Lay's,LAYS-CLS-200,Chips & Crisps,2,2.99,Yellow Lay's bag top shelf
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,4,Lay's Barbecue 200g,Lay's,LAYS-BBQ-200,Chips & Crisps,2,2.99,Red Lay's BBQ bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,5,Cheetos Crunchy 200g,Cheetos,CHEE-CRUNCH-200,Chips & Crisps,2,3.29,Orange Cheetos bag top center
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,6,Cheetos Puffs 200g,Cheetos,CHEE-PUFFS-200,Chips & Crisps,2,3.29,Orange puffs bag top right
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,7,Pringles Original 150g,Pringles,PRING-ORIG-150,Chips & Crisps,2,2.79,Green Pringles can top right
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,8,Pringles Sour Cream 150g,Pringles,PRING-SOUR-150,Chips & Crisps,2,2.79,Sour cream Pringles top far right
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,1,Lay's Wavy Original 200g,Lay's,LAYS-WAVY-200,Chips & Crisps,3,3.29,Wavy Lay's second shelf left
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,2,Lay's Sour Cream Onion 200g,Lay's,LAYS-SCO-200,Chips & Crisps,3,3.29,Sour cream onion Lay's
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,3,Ruffles Original 200g,Ruffles,RUFF-ORIG-200,Chips & Crisps,2,3.29,Ruffles ridged chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,4,Ruffles Cheddar Sour Cream 200g,Ruffles,RUFF-CHED-200,Chips & Crisps,2,3.29,Cheddar Ruffles bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,5,Tostitos Original 300g,Tostitos,TOST-ORIG-300,Chips & Crisps,2,3.99,Tortilla chips center second shelf
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,6,Tostitos Hint of Lime 300g,Tostitos,TOST-LIME-300,Chips & Crisps,2,3.99,Lime tortilla chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,7,Fritos Original 200g,Fritos,FRIT-ORIG-200,Chips & Crisps,2,2.99,Corn chips right second shelf
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,8,Fritos Chili Cheese 200g,Fritos,FRIT-CHIL-200,Chips & Crisps,2,2.99,Chili cheese corn chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,1,Funyuns Onion Rings 160g,Funyuns,FUN-ORIG-160,Chips & Crisps,2,2.49,Onion ring snacks third shelf left
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,2,Smartfood Popcorn White Cheddar 200g,Smartfood,SMART-WCHD-200,Popcorn & Puffs,2,3.49,White cheddar popcorn
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,3,Corn Nuts Original 170g,Corn Nuts,CORNN-ORIG-170,Chips & Crisps,3,2.29,Hard corn snacks pink bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,4,Corn Nuts Ranch 170g,Corn Nuts,CORNN-RNCH-170,Chips & Crisps,3,2.29,Ranch corn nuts blue bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,5,Takis Fuego 200g,Takis,TAKIS-FUG-200,Chips & Crisps,2,3.49,Hot rolled tortilla chips red
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,6,Takis Blue Heat 200g,Takis,TAKIS-BLUE-200,Chips & Crisps,2,3.49,Blue hot tortilla chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,7,Churritos Chili 100g,Churritos,CHUR-CHIL-100,Chips & Crisps,3,1.99,Small churro chips chili flavor
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,8,Chicharrones Pork Rinds 100g,Baken-Ets,BAKEN-ORIG-100,Chips & Crisps,3,2.49,Pork rinds right third shelf
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,1,Doritos Flamin Hot 200g,Doritos,DOR-FLAMHOT-200,Chips & Crisps,2,3.49,Flamin Hot Doritos fourth shelf left
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,2,Cheetos Flamin Hot 200g,Cheetos,CHEE-FLAMHOT-200,Chips & Crisps,2,3.49,Flamin Hot Cheetos
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,3,Lay's Flamin Hot 200g,Lay's,LAYS-FLAMHOT-200,Chips & Crisps,2,3.29,Flamin Hot Lay's chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,4,Churritos Chile Limon 100g,Churritos,CHUR-CHILIM-100,Chips & Crisps,3,1.99,Chile lemon churritos
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,5,Chicharrones BBQ 100g,Baken-Ets,BAKEN-BBQ-100,Chips & Crisps,3,2.49,BBQ pork rinds
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,6,Mission Tortilla Strips 300g,Mission,MISS-TORT-300,Chips & Crisps,2,3.29,Tortilla strips yellow bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,7,SunChips Harvest Cheddar 200g,SunChips,SUN-HCHD-200,Chips & Crisps,2,3.49,Multigrain SunChips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,8,Popcorners White Cheddar 140g,Popcorners,POPC-WCHD-140,Popcorn & Puffs,2,3.79,Triangular popcorn chips right
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,1,Lay's Classic Family Size 400g,Lay's,LAYS-CLS-400,Chips & Crisps,2,5.49,Large bags bottom shelf left
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,2,Doritos Nacho Family Size 400g,Doritos,DOR-NACHO-400,Chips & Crisps,2,5.99,Large Doritos bag bottom
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,3,Cheetos Crunchy Family Size 400g,Cheetos,CHEE-CRUNCH-400,Chips & Crisps,2,5.79,Large Cheetos bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,4,Tostitos Family Size 500g,Tostitos,TOST-ORIG-500,Chips & Crisps,2,6.49,Large tortilla chips bag
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,5,Ruffles Family Size 400g,Ruffles,RUFF-ORIG-400,Chips & Crisps,2,5.99,Large Ruffles ridged chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,6,Fritos Family Size 400g,Fritos,FRIT-ORIG-400,Chips & Crisps,2,5.49,Large Fritos corn chips
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,7,Funyuns Family Size 300g,Funyuns,FUN-ORIG-300,Chips & Crisps,2,4.99,Large onion ring snacks
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,8,Pringles Variety Pack 6x40g,Pringles,PRING-VAR-6PK,Chips & Crisps,2,7.99,Pringles multipack bottom right

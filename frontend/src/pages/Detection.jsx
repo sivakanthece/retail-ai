@@ -741,11 +741,23 @@ export default function Detection() {
   const [bulkSave,        setBulkSave]        = useState(null); // {done, total, type, currentName}
   const [error,           setError]           = useState('');
   const [preview,         setPreview]         = useState(null);
-  const [shelfId,         setShelfId]         = useState('SHELF-A1');
+  const [shelfId,         setShelfId]         = useState('');
+  const [shelves,         setShelves]         = useState([]);
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
   const mobileInputRef = useRef();
+
+  // Load available shelves from planogram DB
+  useEffect(() => {
+    api.get('/planogram/shelves')
+      .then(r => {
+        const list = r.data.shelves || [];
+        setShelves(list);
+        if (list.length) setShelfId(list[0].shelf_id);
+      })
+      .catch(() => {}); // silently ignore if no planogram data
+  }, []);
 
   const handleFile = async (file) => {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
@@ -989,16 +1001,23 @@ export default function Detection() {
         {/* Shelf selector for planogram compliance */}
         <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>📋 Planogram Shelf:</label>
-          <select
-            value={shelfId}
-            onChange={e => setShelfId(e.target.value)}
-            style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, color: '#1e293b' }}
-          >
-            <option value="SHELF-A1">SHELF-A1 — Beverages</option>
-            <option value="SHELF-B2">SHELF-B2 — Snacks</option>
-            <option value="SHELF-C3">SHELF-C3 — Dairy</option>
-          </select>
-          <span style={{ fontSize: 11, color: '#94a3b8' }}>Select which shelf's planogram to check against</span>
+          {shelves.length > 0 ? (
+            <select
+              value={shelfId}
+              onChange={e => setShelfId(e.target.value)}
+              style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, color: '#1e293b' }}
+            >
+              {shelves.map(s => (
+                <option key={s.shelf_id} value={s.shelf_id}>
+                  {s.shelf_id} — {s.shelf_name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+              No planogram loaded — import a CSV in the 📋 Planogram page first
+            </span>
+          )}
         </div>
 
         {/* Action buttons */}

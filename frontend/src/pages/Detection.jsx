@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { detectionAPI } from '../services/api';
+import api, { detectionAPI } from '../services/api';
 
 // ── Stage pipeline progress banner ──────────────────────────────
 const STAGE_INFO = [

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import api from '../services/api';
 
 const COMPLIANCE_COLORS = {
   ok:           { bg: '#dcfce7', color: '#15803d', label: '✅ OK' },
@@ -22,9 +21,6 @@ function Badge({ status }) {
 }
 
 export default function Planogram() {
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
-
   const [shelves, setShelves]         = useState([]);
   const [selectedShelf, setSelected]  = useState('');
   const [entries, setEntries]         = useState([]);
@@ -37,8 +33,8 @@ export default function Planogram() {
   // ── Load shelf list ───────────────────────────────────────────
   const loadShelves = async () => {
     try {
-      const r = await fetch(`${API}/planogram/shelves`, { headers });
-      const d = await r.json();
+      const r = await api.get('/planogram/shelves');
+      const d = r.data;
       setShelves(d.shelves || []);
       if (d.shelves?.length && !selectedShelf) {
         setSelected(d.shelves[0].shelf_id);
@@ -51,9 +47,8 @@ export default function Planogram() {
     if (!shelfId) return;
     setLoading(true);
     try {
-      const r = await fetch(`${API}/planogram/?shelf_id=${shelfId}`, { headers });
-      const d = await r.json();
-      setEntries(d.entries || []);
+      const r = await api.get(`/planogram/?shelf_id=${shelfId}`);
+      setEntries(r.data.entries || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -70,19 +65,12 @@ export default function Planogram() {
     const form = new FormData();
     form.append('file', file);
     try {
-      const r = await fetch(`${API}/planogram/import-csv?replace_shelf=ALL`, {
-        method: 'POST', headers, body: form,
-      });
-      const d = await r.json();
-      if (r.ok) {
-        setImportMsg(`Imported ${d.inserted} entries successfully.`);
-        await loadShelves();
-        await loadEntries(selectedShelf);
-      } else {
-        setImportErr(d.detail || 'Import failed');
-      }
+      const r = await api.post('/planogram/import-csv?replace_shelf=ALL', form);
+      setImportMsg(`Imported ${r.data.inserted} entries successfully.`);
+      await loadShelves();
+      await loadEntries(selectedShelf);
     } catch (err) {
-      setImportErr(String(err));
+      setImportErr(err.response?.data?.detail || String(err));
     }
     if (fileRef.current) fileRef.current.value = '';
   };
@@ -90,7 +78,7 @@ export default function Planogram() {
   // ── Delete entry ──────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this planogram entry?')) return;
-    await fetch(`${API}/planogram/${id}`, { method: 'DELETE', headers });
+    await api.delete(`/planogram/${id}`);
     loadEntries(selectedShelf);
   };
 

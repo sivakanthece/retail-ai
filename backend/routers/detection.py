@@ -417,6 +417,104 @@ def _library_preflight(image, iw, ih, batch, db):
         return [None] * len(batch)
 
 
+def _infer_category_from_name(name: str) -> str | None:
+    """
+    Derive a retail category from a known product name via keyword matching.
+    Returns None if no confident match — caller falls back to CLIP Stage 2.
+    Used to fix CLIP's unreliable category guesses on small bottle/can crops.
+    """
+    n = name.lower()
+    # Soda / carbonated soft drinks
+    if any(k in n for k in [
+        "coca-cola", "coca cola", "coke", "sprite", "fanta", "pepsi", "7up",
+        "seven up", "dr pepper", "mountain dew", "schweppes", "irn-bru",
+        "lucozade", "redbull", "red bull", "monster energy", "rockstar",
+        "diet coke", "diet pepsi", "zero sugar", "zero bottle", "soda",
+        "lilt", "tango", "oasis", "big red",
+    ]):
+        return "Soda & Energy Drinks"
+    # Water & Juice
+    if any(k in n for k in [
+        "water", "juice", "lemonade", "squash", "smoothie", "ribena",
+        "innocent", "tropicana", "fentimans", "rose lemonade", "elderflower",
+        "craft lemonade", "apple juice", "orange juice", "coconut water",
+        "kombucha", "san pellegrino",
+    ]):
+        return "Water & Juice"
+    # Beer
+    if any(k in n for k in [
+        "beer", "lager", "ale", "stout", "heineken", "carlsberg", "corona",
+        "budweiser", "stella artois", "guinness", "peroni", "fosters",
+        "ipa", "pale ale", "craft beer",
+    ]):
+        return "Beer"
+    # Wine & spirits
+    if any(k in n for k in [
+        "wine", "whiskey", "whisky", "vodka", "gin", "rum", "tequila",
+        "champagne", "prosecco", "rosé", "brandy", "bourbon", "scotch",
+        "jack daniel", "absolut", "smirnoff", "baileys", "kahlua",
+    ]):
+        return "Wine & Spirits"
+    # Dairy
+    if any(k in n for k in [
+        "milk", "dairy", "cream", "butter", "buttermilk",
+    ]):
+        return "Milk & Dairy Drinks"
+    if any(k in n for k in ["yogurt", "yoghurt"]):
+        return "Yogurt"
+    if any(k in n for k in ["cheese", "cheddar", "mozzarella", "brie", "gouda"]):
+        return "Cheese"
+    # Snacks
+    if any(k in n for k in [
+        "chips", "crisps", "pringles", "doritos", "walkers", "lays", "lay's",
+        "tortilla", "popcorn", "nachos",
+    ]):
+        return "Chips & Crisps"
+    if any(k in n for k in [
+        "chocolate", "candy", "sweets", "haribo", "kit kat", "snickers",
+        "twix", "mars", "bounty", "dairy milk", "m&m", "skittles",
+    ]):
+        return "Candy & Chocolate"
+    if any(k in n for k in ["biscuit", "cookie", "cracker", "digestive", "hobnob"]):
+        return "Cookies & Crackers"
+    if any(k in n for k in ["protein bar", "granola bar", "snack bar", "cereal bar", "KIND bar"]):
+        return "Snack Bars & Protein Bars"
+    # Other
+    if any(k in n for k in ["cereal", "cornflakes", "granola", "muesli", "oats", "porridge"]):
+        return "Cereals & Oats"
+    if any(k in n for k in ["bread", "bun", "roll", "bagel", "loaf", "muffin", "croissant"]):
+        return "Bread & Bakery"
+    if any(k in n for k in ["pasta", "noodle", "spaghetti", "penne", "macaroni", "ramen"]):
+        return "Pasta & Noodles"
+    if any(k in n for k in ["rice", "quinoa", "couscous", "basmati", "jasmine rice"]):
+        return "Rice & Grains"
+    if any(k in n for k in ["sauce", "ketchup", "mustard", "mayo", "mayonnaise", "relish", "soy sauce"]):
+        return "Sauces & Condiments"
+    if any(k in n for k in ["oil", "olive oil", "sunflower oil", "vegetable oil", "coconut oil"]):
+        return "Cooking Oils"
+    if any(k in n for k in ["jam", "marmalade", "peanut butter", "nutella", "honey", "maple syrup"]):
+        return "Spreads & Jams"
+    if any(k in n for k in ["coffee", "nescafe", "espresso", "latte"]):
+        return "Tea & Coffee"
+    if any(k in n for k in ["tea", "green tea", "herbal tea", "chamomile", "earl grey"]):
+        return "Tea & Coffee"
+    if any(k in n for k in ["ice cream", "gelato", "sorbet", "frozen yogurt", "popsicle", "magnum"]):
+        return "Ice Cream & Frozen Desserts"
+    if any(k in n for k in ["shampoo", "conditioner", "hair"]):
+        return "Hair Care"
+    if any(k in n for k in ["soap", "body wash", "shower gel", "hand wash"]):
+        return "Body Wash & Soap"
+    if any(k in n for k in ["toothpaste", "toothbrush", "mouthwash", "floss"]):
+        return "Oral Care"
+    if any(k in n for k in ["vitamin", "supplement", "tablet", "capsule", "medicine"]):
+        return "Health & Vitamins"
+    if any(k in n for k in ["dog food", "cat food", "pet food", "kibble", "pedigree", "whiskas"]):
+        return "Pet Food"
+    if any(k in n for k in ["nappy", "diaper", "baby food", "formula", "infant"]):
+        return "Baby Products"
+    return None
+
+
 async def _run_batch(image, iw, ih, batch, batch_start, provider_hint=""):
     """Crop, build strip, call LLM. Returns (items, provider_used)."""
     import asyncio
@@ -934,6 +1032,13 @@ async def run_pipeline(
             "expected": pog_entry.product_name if pog_entry else None,
             "status":   compliance,
         })
+
+        # Override CLIP category with name-based inference when product is known.
+        # CLIP on small bottle/can crops is unreliable; the product name is authoritative.
+        if final_name:
+            inferred_cat = _infer_category_from_name(final_name)
+            if inferred_cat:
+                cat = inferred_cat
 
         enriched_d = {
             **d,

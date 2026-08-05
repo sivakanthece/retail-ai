@@ -1,0 +1,33 @@
+shelf_id,shelf_name,row,col,product_name,brand,sku,category,facings,unit_price_usd,planogram_notes
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,1,Coca-Cola Classic 330ml Can,Coca-Cola,CC-CLASSIC-330,Soda & Energy Drinks,3,1.49,Top shelf left — flagship product
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,2,Coca-Cola Zero Sugar 330ml Can,Coca-Cola,CC-ZERO-330,Soda & Energy Drinks,3,1.49,Next to classic — zero sugar variant
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,3,Pepsi Max 330ml Can,Pepsi,PEPSI-MAX-330,Soda & Energy Drinks,2,1.39,Blue cans — cola competitor
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,4,Fanta Orange 330ml Can,Fanta,FANTA-ORG-330,Soda & Energy Drinks,2,1.29,Yellow/orange cans center-top
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,5,Fanta Lemon 330ml Can,Fanta,FANTA-LEM-330,Soda & Energy Drinks,2,1.29,Lemon variety top shelf
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,6,Dr Pepper Original 330ml Can,Dr Pepper,DP-ORIG-330,Soda & Energy Drinks,2,1.49,Dark cherry cola — top right section
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,7,Dr Pepper Cherry 330ml Can,Dr Pepper,DP-CHERRY-330,Soda & Energy Drinks,2,1.49,Cherry variant beside original
+SHELF-BEV-01,Beverages Soft Drinks Aisle,1,8,Lucozade Energy Original 380ml,Lucozade,LUC-ORIG-380,Soda & Energy Drinks,2,1.89,Orange energy drink far right top
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,1,Fanta Strawberry 330ml Can,Fanta,FANTA-STR-330,Soda & Energy Drinks,3,1.29,Pink Fanta — second shelf far left
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,2,Fanta Grape 330ml Can,Fanta,FANTA-GRP-330,Soda & Energy Drinks,3,1.29,Purple Fanta variety
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,3,Fanta Tropical 330ml Can,Fanta,FANTA-TRP-330,Soda & Energy Drinks,3,1.29,Tropical Fanta yellow-green
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,4,Fanta Exotic 330ml Can,Fanta,FANTA-EXO-330,Soda & Energy Drinks,2,1.29,Exotic mixed fruit Fanta
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,5,Sprite Original 330ml Can,Sprite,SPRITE-ORIG-330,Soda & Energy Drinks,2,1.29,Green Sprite cans center shelf
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,6,Sprite Zero Sugar 330ml Can,Sprite,SPRITE-ZERO-330,Soda & Energy Drinks,2,1.29,Zero sugar Sprite variant
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,7,Chupa Chups Cola 250ml Can,Chupa Chups,CHUPA-COLA-250,Soda & Energy Drinks,2,1.59,Novelty branded cola soda
+SHELF-BEV-01,Beverages Soft Drinks Aisle,2,8,Schweppes Pink Tonic 250ml Can,Schweppes,SCH-PINK-250,Mixers & Tonic,2,1.79,Pink tonic far right second shelf
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,1,Fanta Orange 1.5L Bottle,Fanta,FANTA-ORG-1500,Soda & Energy Drinks,2,2.49,Large Fanta orange bottle — third shelf left
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,2,Fanta Lemon 1.5L Bottle,Fanta,FANTA-LEM-1500,Soda & Energy Drinks,2,2.49,Large Fanta lemon bottle
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,3,Sprite Original 1.5L Bottle,Sprite,SPRITE-ORIG-1500,Soda & Energy Drinks,2,2.49,Large green Sprite bottle
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,4,Sprite Zero Sugar 1.5L Bottle,Sprite,SPRITE-ZERO-1500,Soda & Energy Drinks,2,2.49,Large Sprite Zero bottle
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,5,Schweppes Tonic Water 1L Bottle,Schweppes,SCH-TONIC-1000,Mixers & Tonic,2,2.19,Premium mixer — Schweppes tonic
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,6,Schweppes Bitter Lemon 1L Bottle,Schweppes,SCH-BITTER-1000,Mixers & Tonic,2,2.19,Schweppes bitter lemon mixer
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,7,Fentimans Rose Lemonade 750ml,Fentimans,FENT-ROSE-750,Mixers & Tonic,2,3.49,Premium botanical — rose lemon
+SHELF-BEV-01,Beverages Soft Drinks Aisle,3,8,Fentimans Ginger Beer 750ml,Fentimans,FENT-GING-750,Mixers & Tonic,2,3.49,Premium botanical ginger beer
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,1,Coca-Cola Classic 2L Bottle,Coca-Cola,CC-CLASSIC-2000,Soda & Energy Drinks,2,3.29,Large Cola bottle — bottom shelf left
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,2,Coca-Cola Zero Sugar 2L Bottle,Coca-Cola,CC-ZERO-2000,Soda & Energy Drinks,2,3.29,Large Zero Cola bottle
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,3,Sprite Original 2L Bottle,Sprite,SPRITE-ORIG-2000,Soda & Energy Drinks,2,2.99,Large Sprite green bottle bottom
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,4,Sprite Zero Sugar 2L Bottle,Sprite,SPRITE-ZERO-2000,Soda & Energy Drinks,2,2.99,Large Sprite Zero bottom shelf
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,5,Schweppes Ginger Ale 2L Bottle,Schweppes,SCH-GING-2000,Mixers & Tonic,2,2.89,Schweppes large ginger ale
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,6,Schweppes Lemonade 2L Bottle,Schweppes,SCH-LEM-2000,Mixers & Tonic,2,2.89,Schweppes large lemonade
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,7,Craft Cola Original 750ml,O&C Craft,OC-COLA-750,Soda & Energy Drinks,2,4.49,Artisan craft cola — bottom right
+SHELF-BEV-01,Beverages Soft Drinks Aisle,4,8,Craft Lemonade 750ml,O&C Craft,OC-LEM-750,Soda & Energy Drinks,2,4.49,Artisan craft lemonade

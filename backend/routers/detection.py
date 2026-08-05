@@ -762,22 +762,13 @@ async def run_pipeline(
     # ── Stage 2: category classification ─────────────────────────
     cat_results = classify_categories_batch(crops)
 
-    # ── Stage 3: embedding extraction + library search ────────────
-    refs_raw = db.query(ProductReference).all()
-    refs = [
-        {
-            "product_name": r.product_name,
-            "product_id":   r.product_id,
-            "embedding":    r.embedding,
-        }
-        for r in refs_raw
-    ]
-
-    embeddings = extract_embeddings_batch(crops)
-    matches    = find_best_matches(embeddings, refs)
-
-    # ── Assign grid positions (row, col) from bounding box centres ─
-    # ── Stage 3.5: planogram lookup (optional) ────────────────────
+    # ── Stage 3.5: planogram setup — runs FIRST, before CLIP library ────────
+    # Running planogram before CLIP prevents false-positive library matches.
+    # Example: a beverage CLIP library would otherwise match dairy shelf crops
+    # at 82-89% cosine similarity because the threshold (0.82) is too generous
+    # for cross-category comparisons.  When a planogram is loaded for the shelf,
+    # every grid position it covers is authoritatively identified here; CLIP
+    # library only runs for the remaining positions the planogram doesn't cover.
     shelf_id      = getattr(payload, "shelf_id", None) or "SHELF-A1"
     use_planogram = getattr(payload, "use_planogram", True)
 
@@ -822,10 +813,9 @@ async def run_pipeline(
 
     grid_positions = _assign_grid(detections, iw, ih, num_rows=num_rows, num_cols=num_cols)
 
+    # Pre-compute planogram hits from grid positions
     if use_planogram:
-        for i, m in enumerate(matches):
-            if m:
-                continue  # already matched by library — skip planogram
+        for i in range(len(detections)):
             row, col = grid_positions[i] if i < len(grid_positions) else (0, 0)
             pog = pog_index.get((row, col))
             if pog:
@@ -835,6 +825,31 @@ async def run_pipeline(
                     "sku":   pog.sku   or "",
                 }
                 logger.info(f"[pipeline] Stage 3.5 planogram hit: R{row}C{col} → {pog.product_name}")
+
+    # ── Stage 3: CLIP library — only for positions NOT covered by planogram ──
+    # Planogram is authoritative; CLIP library is the fallback for unknown positions.
+    refs_raw = db.query(ProductReference).all()
+    refs = [
+        {
+            "product_name": r.product_name,
+            "product_id":   r.product_id,
+            "embedding":    r.embedding,
+        }
+        for r in refs_raw
+    ]
+
+    pog_covered   = set(pog_hits.keys())
+    non_pog_idx   = [i for i in range(len(detections)) if i not in pog_covered]
+    matches: list = [None] * len(detections)
+
+    if non_pog_idx and refs:
+        non_pog_crops      = [crops[i] for i in non_pog_idx]
+        non_pog_embeddings = extract_embeddings_batch(non_pog_crops)
+        non_pog_matches    = find_best_matches(non_pog_embeddings, refs)
+        for j, orig_i in enumerate(non_pog_idx):
+            matches[orig_i] = non_pog_matches[j]
+        logger.info(f"[pipeline] Stage 3 CLIP: searched {len(non_pog_idx)} items "
+                    f"(skipped {len(pog_covered)} planogram-covered)")
 
     # ── Stage 3b: LLM identification — only for items still unmatched ──
     still_unmatched = [
@@ -873,7 +888,7 @@ async def run_pipeline(
         llm   = llm_names.get(i)
         row, col = grid_positions[i] if i < len(grid_positions) else (0, 0)
 
-        # Priority: library > planogram > LLM > None
+        # Priority: planogram > library > LLM > None
         if match:
             final_name  = match["product_name"]
             final_brand = None

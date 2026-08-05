@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { libraryAPI } from '../services/api';
 
 const STAGE_COLORS = {
+  yolo_ready: { bg: '#dcfce7', color: '#15803d', label: '✅ YOLOv8 Ready' },
   ready:      { bg: '#dcfce7', color: '#15803d', label: '✅ CLIP Ready' },
   not_loaded: { bg: '#fef3c7', color: '#d97706', label: '⏳ Not loaded yet' },
   error:      { bg: '#fee2e2', color: '#dc2626', label: '❌ Unavailable' },
@@ -203,7 +204,7 @@ export default function ProductLibrary() {
       {/* Pipeline stages info */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
         <StageCard
-          stage={1} title="Object Detection" status="ready"
+          stage={1} title="Object Detection" status="yolo_ready"
           desc="YOLOv8n detects every product on the shelf and produces bounding boxes with confidence scores."
         />
         <StageCard

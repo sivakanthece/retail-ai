@@ -746,6 +746,7 @@ export default function Detection() {
   const [usePlanogram,    setUsePlanogram]    = useState(true); // toggle planogram compliance
   const [libSaveState,    setLibSaveState]    = useState({}); // {detectionIndex: 'saving'|'done'|'error'}
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
+  const [inventorySaves,  setInventorySaves]  = useState(null); // auto-saved products after pipeline
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
   const mobileInputRef = useRef();
@@ -765,7 +766,7 @@ export default function Detection() {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
     setError('');
     setResult(null); setGroups(null); setSavedNames({}); setSavedToLibrary({});
-    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({});
+    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null);
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
@@ -792,6 +793,7 @@ export default function Detection() {
       setEnriched(pr.data.detections);
       setPipelineStats(pr.data.pipeline_stats);
       if (pr.data.compliance) setCompliance(pr.data.compliance);
+      if (pr.data.inventory_saves) setInventorySaves(pr.data.inventory_saves);
     } catch (e) {
       // Pipeline failure is non-fatal — still show YOLO results
       console.warn('Pipeline (Stage 2/3) failed:', e.response?.data?.detail || e.message);
@@ -964,6 +966,21 @@ export default function Detection() {
       ));
     } catch {
       setLibSaveState(s => ({ ...s, [index]: 'error' }));
+    }
+  };
+
+  // Bulk-save ALL planogram-matched crops to CLIP library in one click
+  const handleBulkSavePlanogramToLibrary = async () => {
+    if (!enriched || !result) return;
+    const toSave = enriched
+      .map((d, i) => ({ d, i }))
+      .filter(({ d, i }) =>
+        (d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product)) &&
+        libSaveState[i] !== 'done' && libSaveState[i] !== 'saving'
+      );
+    if (!toSave.length) return;
+    for (const { d, i } of toSave) {
+      await handleSavePlanogramCrop(i, d.matched_product, d.bbox);
     }
   };
 
@@ -1232,7 +1249,7 @@ export default function Detection() {
                 <div className="card-title" style={{ margin:0 }}>
                   Pipeline Results — {enriched.length} detections
                 </div>
-                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
                   {[
                     { label:'📚 Library',   val: pipelineStats?.stage3_matched   ?? 0, bg:'#dcfce7', color:'#15803d' },
                     { label:'📋 Planogram', val: pipelineStats?.stage3_planogram  ?? 0, bg:'#dbeafe', color:'#1d4ed8' },
@@ -1244,8 +1261,56 @@ export default function Detection() {
                       padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
                     }}>{b.label}: {b.val}</span>
                   ))}
+                  {/* ── Bulk "Save All to Library" for planogram-matched rows ── */}
+                  {(() => {
+                    const planogramRows = enriched.filter((d, i) =>
+                      (d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product))
+                    );
+                    const savedCount = enriched.filter((d, i) =>
+                      (d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product)) &&
+                      libSaveState[i] === 'done'
+                    ).length;
+                    const allSaved = planogramRows.length > 0 && savedCount === planogramRows.length;
+                    const anySaving = enriched.some((d, i) => libSaveState[i] === 'saving');
+                    if (planogramRows.length === 0) return null;
+                    return (
+                      <button
+                        onClick={handleBulkSavePlanogramToLibrary}
+                        disabled={allSaved || anySaving}
+                        style={{
+                          padding: '5px 14px', borderRadius: 6, border: '1px solid #c4b5fd',
+                          background: allSaved ? '#f5f3ff' : 'linear-gradient(135deg,#7c3aed,#6d28d9)',
+                          color: allSaved ? '#7c3aed' : '#fff',
+                          fontSize: 12, fontWeight: 700, cursor: (allSaved || anySaving) ? 'default' : 'pointer',
+                          opacity: (allSaved || anySaving) ? 0.7 : 1,
+                          display: 'flex', alignItems: 'center', gap: 5,
+                        }}
+                      >
+                        {anySaving ? '⏳ Saving…'
+                          : allSaved ? '✅ All in Library'
+                          : `📚 Save All to Library (${planogramRows.length - savedCount})`}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
+
+              {/* ── Auto-saved inventory banner ── */}
+              {inventorySaves && inventorySaves.length > 0 && (
+                <div style={{
+                  background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8,
+                  padding: '10px 14px', marginBottom: 14,
+                  display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#15803d',
+                }}>
+                  <span style={{ fontSize: 18 }}>📦</span>
+                  <span>
+                    <b>{inventorySaves.length} product{inventorySaves.length !== 1 ? 's' : ''}</b> auto-saved to inventory
+                    ({inventorySaves.filter(s => s.status === 'created').length} new,{' '}
+                    {inventorySaves.filter(s => s.status === 'updated').length} updated).
+                    {' '}View in <a href="/inventory" style={{ color:'#15803d', fontWeight:700 }}>📦 Inventory</a>.
+                  </span>
+                </div>
+              )}
 
               {/* Compliance summary bar */}
               {compliance && (

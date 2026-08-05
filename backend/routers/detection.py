@@ -942,10 +942,15 @@ async def run_pipeline(
     ok_count = sum(1 for c in compliance_results if c["status"] == "ok")
     compliance_rate = round(ok_count / len(compliance_results) * 100, 1) if compliance_results else 0
 
+    # ── Auto-save identified products → inventory ─────────────────
+    inventory_saves = _pipeline_inventory_upsert(enriched, db)
+    logger.info(f"[pipeline] Auto-saved {len(inventory_saves)} products to inventory")
+
     from vision_pipeline import _clip_ready, _clip_error
     return {
-        "event_id":   payload.event_id,
-        "detections": enriched,
+        "event_id":       payload.event_id,
+        "detections":     enriched,
+        "inventory_saves": inventory_saves,
         "pipeline_stats": {
             "stage1_total":        len(detections),
             "stage2_classified":   len(detections),
@@ -1031,6 +1036,75 @@ async def add_detection_to_library(
         "image_url":    f"/library/image/{ref.id}",
         "message":      f"Added to library: {ref.product_name}",
     }
+
+
+def _pipeline_inventory_upsert(enriched: list, db: Session) -> list:
+    """
+    After a pipeline run, auto-upsert every identified product into the
+    Product + Inventory tables so they appear in the Inventory page and Dashboard.
+
+    Priority rules:
+    - Matches by name (case-insensitive) to avoid duplicates across scans.
+    - Quantity = number of times that product was detected in this image.
+    - Creates a new Product row if not found; updates quantity if found.
+    """
+    # Group by name → count
+    groups: dict[str, dict] = {}
+    for d in enriched:
+        name = d.get("matched_product")
+        if not name:
+            continue
+        key = name.lower().strip()
+        if key not in groups:
+            groups[key] = {
+                "name":     name,
+                "category": d.get("category") or "General",
+                "sku":      d.get("sku") or "",
+                "brand":    d.get("brand") or "",
+                "count":    0,
+            }
+        groups[key]["count"] += 1
+
+    saves = []
+    for pg in groups.values():
+        try:
+            # Case-insensitive name lookup
+            existing = db.query(Product).filter(
+                Product.name.ilike(pg["name"])
+            ).first()
+
+            if existing and existing.inventory:
+                existing.inventory.quantity    = pg["count"]
+                existing.inventory.last_updated = datetime.utcnow()
+                saves.append({"name": pg["name"], "quantity": pg["count"], "status": "updated"})
+            elif existing and not existing.inventory:
+                inv = Inventory(product_id=existing.id, quantity=pg["count"],
+                                last_updated=datetime.utcnow())
+                db.add(inv)
+                saves.append({"name": pg["name"], "quantity": pg["count"], "status": "inv_created"})
+            else:
+                # Auto-generate a stable SKU from product name
+                base_sku = pg["sku"] or f"AUTO-{pg['name'][:14].upper().replace(' ', '-')}"
+                # Ensure uniqueness
+                if db.query(Product).filter(Product.sku == base_sku).first():
+                    base_sku = f"{base_sku[:18]}-{datetime.utcnow().strftime('%H%M%S')}"
+                new_prod = Product(sku=base_sku, name=pg["name"],
+                                   category=pg["category"], low_stock_threshold=5)
+                db.add(new_prod)
+                db.flush()
+                db.add(Inventory(product_id=new_prod.id, quantity=pg["count"],
+                                 last_updated=datetime.utcnow()))
+                saves.append({"name": pg["name"], "quantity": pg["count"], "status": "created"})
+        except Exception as exc:
+            logger.warning(f"Auto-inventory upsert failed for '{pg['name']}': {exc}")
+
+    if saves:
+        try:
+            db.commit()
+        except Exception as exc:
+            logger.warning(f"Inventory commit failed: {exc}")
+            db.rollback()
+    return saves
 
 
 def _update_inventory_from_detections(detections: list, db: Session) -> list:

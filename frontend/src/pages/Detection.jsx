@@ -744,6 +744,7 @@ export default function Detection() {
   const [shelfId,         setShelfId]         = useState('');
   const [shelves,         setShelves]         = useState([]);
   const [usePlanogram,    setUsePlanogram]    = useState(true); // toggle planogram compliance
+  const [libSaveState,    setLibSaveState]    = useState({}); // {detectionIndex: 'saving'|'done'|'error'}
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
@@ -764,7 +765,7 @@ export default function Detection() {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
     setError('');
     setResult(null); setGroups(null); setSavedNames({}); setSavedToLibrary({});
-    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null);
+    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({});
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
@@ -947,6 +948,23 @@ export default function Detection() {
       setBulkSave(s => ({ ...s, done }));
     }
     setBulkSave(null);
+  };
+
+  // Save a planogram-identified crop straight to library — no modal needed,
+  // the product name is already known from the planogram entry.
+  const handleSavePlanogramCrop = async (index, productName, bbox) => {
+    if (!result || libSaveState[index]) return;
+    setLibSaveState(s => ({ ...s, [index]: 'saving' }));
+    try {
+      await detectionAPI.addToLibrary(result.event_id, bbox, productName);
+      setLibSaveState(s => ({ ...s, [index]: 'done' }));
+      // Also update enriched so the row shows library match in future runs
+      setEnriched(prev => prev.map((d, i) =>
+        i === index ? { ...d, matched_product: productName, match_confidence: 1.0, stage: 3 } : d
+      ));
+    } catch {
+      setLibSaveState(s => ({ ...s, [index]: 'error' }));
+    }
   };
 
   const savedCount    = Object.keys(savedNames).length;
@@ -1348,6 +1366,29 @@ export default function Detection() {
                               )}
                               {d.brand && (
                                 <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{d.brand}</div>
+                              )}
+                              {/* Save planogram crops to library so future scans use CLIP matching */}
+                              {d.planogram_identified && (
+                                <div style={{ marginTop:5 }}>
+                                  {libSaveState[i] === 'done' ? (
+                                    <span style={{ fontSize:10, color:'#7c3aed', fontWeight:600 }}>✅ Saved to library</span>
+                                  ) : libSaveState[i] === 'saving' ? (
+                                    <span style={{ fontSize:10, color:'#64748b' }}>⏳ Saving…</span>
+                                  ) : libSaveState[i] === 'error' ? (
+                                    <span style={{ fontSize:10, color:'#dc2626' }}>❌ Failed (CLIP unavailable?)</span>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleSavePlanogramCrop(i, d.matched_product, d.bbox)}
+                                      style={{
+                                        fontSize:10, padding:'2px 9px', borderRadius:4, cursor:'pointer',
+                                        background:'#f5f3ff', color:'#6d28d9',
+                                        border:'1px solid #c4b5fd', fontWeight:600,
+                                      }}
+                                    >
+                                      📚 Save to Library
+                                    </button>
+                                  )}
+                                </div>
                               )}
                             </div>
                           ) : (

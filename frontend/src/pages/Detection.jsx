@@ -5,7 +5,7 @@ import api, { detectionAPI } from '../services/api';
 const STAGE_INFO = [
   { id: 1, icon: '🔲', label: 'Object Detection',        desc: 'YOLOv8 locating products' },
   { id: 2, icon: '🏷️', label: 'Category Classification', desc: 'CLIP assigning categories' },
-  { id: 3, icon: '🔎', label: 'SKU Matching',            desc: 'Searching product library' },
+  { id: 3, icon: '🔎', label: 'SKU & Planogram',          desc: 'Library match + grid lookup' },
 ];
 
 function PipelineBanner({ currentStage, stats }) {
@@ -1260,14 +1260,14 @@ export default function Detection() {
                 <table>
                   <thead>
                     <tr>
+                      <th>#</th>
                       <th>Preview</th>
-                      <th>Stage 2 — Category</th>
-                      <th>Stage 3 — Matched Product</th>
+                      <th>Category</th>
+                      <th>Identified Product</th>
                       <th>Grid</th>
                       <th>Compliance</th>
-                      <th>Match Conf.</th>
+                      <th>Match</th>
                       <th>YOLO Conf.</th>
-                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1279,20 +1279,58 @@ export default function Detection() {
                         no_planogram: { bg:'#f1f5f9', color:'#64748b', label:'— No Data' },
                       };
                       const cs = complianceColors[d.compliance] || complianceColors.no_planogram;
+
+                      // Match confidence cell — meaningful label per source
+                      let matchCell;
+                      if (d.match_confidence) {
+                        matchCell = (
+                          <span style={{
+                            fontWeight:700, color:'#16a34a', fontSize:12,
+                            background:'#dcfce7', padding:'2px 8px', borderRadius:4,
+                          }}>
+                            {(d.match_confidence * 100).toFixed(0)}% CLIP
+                          </span>
+                        );
+                      } else if (d.planogram_identified) {
+                        matchCell = (
+                          <span style={{
+                            fontWeight:700, color:'#1d4ed8', fontSize:12,
+                            background:'#dbeafe', padding:'2px 8px', borderRadius:4,
+                          }}>
+                            📋 Grid
+                          </span>
+                        );
+                      } else if (d.llm_identified) {
+                        matchCell = (
+                          <span style={{
+                            fontWeight:700, color:'#7c3aed', fontSize:12,
+                            background:'#ede9fe', padding:'2px 8px', borderRadius:4,
+                          }}>
+                            🤖 AI
+                          </span>
+                        );
+                      } else {
+                        matchCell = <span style={{ color:'#cbd5e1', fontSize:12 }}>—</span>;
+                      }
+
                       return (
-                      <tr key={i}>
-                        <td><CropThumb imageSrc={preview} bbox={d.bbox} size={52} /></td>
+                      <tr key={i} style={{
+                        background: d.matched_product
+                          ? d.planogram_identified ? 'rgba(219,234,254,0.25)'
+                          : d.llm_identified      ? 'rgba(237,233,254,0.2)'
+                          : 'rgba(220,252,231,0.2)'
+                          : undefined,
+                      }}>
+                        <td style={{ color:'#94a3b8', fontSize:11, fontWeight:600 }}>{i + 1}</td>
+                        <td><CropThumb imageSrc={preview} bbox={d.bbox} size={48} /></td>
                         <td>
                           <span style={{
                             background:'#ede9fe', color:'#6d28d9',
                             borderRadius:99, padding:'3px 10px',
-                            fontSize:12, fontWeight:600,
+                            fontSize:11, fontWeight:600,
                           }}>
                             {d.category}
                           </span>
-                          <div style={{ fontSize:10, color:'#94a3b8', marginTop:2 }}>
-                            {(d.category_confidence * 100).toFixed(0)}% confidence
-                          </div>
                         </td>
                         <td>
                           {d.matched_product ? (
@@ -1300,23 +1338,23 @@ export default function Detection() {
                               <span style={{ fontWeight:600, color:'#1e293b', fontSize:13 }}>{d.matched_product}</span>
                               {d.planogram_identified ? (
                                 <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
-                                  background:'#dbeafe', color:'#1d4ed8', fontWeight:700 }}>Planogram</span>
+                                  background:'#dbeafe', color:'#1d4ed8', fontWeight:700 }}>📋 Planogram</span>
                               ) : d.llm_identified ? (
                                 <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
-                                  background:'#ede9fe', color:'#7c3aed', fontWeight:700 }}>AI</span>
+                                  background:'#ede9fe', color:'#7c3aed', fontWeight:700 }}>🤖 AI</span>
                               ) : (
                                 <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
-                                  background:'#dcfce7', color:'#15803d', fontWeight:700 }}>Library</span>
+                                  background:'#dcfce7', color:'#15803d', fontWeight:700 }}>📚 Library</span>
                               )}
                               {d.brand && (
                                 <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{d.brand}</div>
                               )}
                             </div>
                           ) : (
-                            <span style={{ color:'#94a3b8', fontSize:12 }}>Not identified</span>
+                            <span style={{ color:'#94a3b8', fontSize:12, fontStyle:'italic' }}>Not identified</span>
                           )}
                         </td>
-                        <td style={{ fontSize:12, color:'#64748b', fontFamily:'monospace' }}>
+                        <td style={{ fontSize:11, color:'#64748b', fontFamily:'monospace', fontWeight:600 }}>
                           {d.grid_row != null ? `R${d.grid_row}C${d.grid_col}` : '—'}
                         </td>
                         <td>
@@ -1326,29 +1364,9 @@ export default function Detection() {
                             fontSize:11, fontWeight:700,
                           }}>{cs.label}</span>
                         </td>
-                        <td>
-                          {d.match_confidence
-                            ? <span style={{ fontWeight:700, color:'#16a34a' }}>{(d.match_confidence * 100).toFixed(0)}%</span>
-                            : <span style={{ color:'#e2e8f0' }}>—</span>}
-                        </td>
-                        <td style={{ color:'#64748b', fontSize:13 }}>
+                        <td>{matchCell}</td>
+                        <td style={{ color:'#64748b', fontSize:12 }}>
                           {(d.confidence * 100).toFixed(0)}%
-                        </td>
-                        <td>
-                          {d.matched_product ? (
-                            <span style={{ fontSize:11, color:'#16a34a', fontWeight:600 }}>✅ Known</span>
-                          ) : (
-                            <button
-                              onClick={() => setLibraryModal({ bbox: d.bbox, index: i })}
-                              style={{
-                                padding:'4px 10px', borderRadius:6, border:'1px solid #c7d2fe',
-                                background:'#eef2ff', color:'#4338ca', cursor:'pointer',
-                                fontSize:11, fontWeight:600,
-                              }}
-                            >
-                              + Add to Library
-                            </button>
-                          )}
                         </td>
                       </tr>
                     );

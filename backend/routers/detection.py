@@ -777,34 +777,6 @@ async def run_pipeline(
     matches    = find_best_matches(embeddings, refs)
 
     # ── Assign grid positions (row, col) from bounding box centres ─
-    # Sort by y_centre to determine row bands, then by x_centre for col.
-    # Works even when shelf rows aren't perfectly uniform.
-    def _assign_grid(dets: list, img_h: int, num_rows: int = 3) -> list[tuple[int, int]]:
-        """Return (row, col) for each detection using y-band bucketing."""
-        if not dets:
-            return []
-        band_h = img_h / num_rows
-        # Compute centre coords
-        centres = [
-            ((d["bbox"][1] + d["bbox"][3]) / 2, (d["bbox"][0] + d["bbox"][2]) / 2)
-            for d in dets
-        ]
-        rows = [min(int(yc / band_h), num_rows - 1) + 1 for yc, _ in centres]
-
-        # Within each row, rank by x_centre to assign col
-        from collections import defaultdict
-        row_groups: dict[int, list] = defaultdict(list)
-        for idx, (r, (yc, xc)) in enumerate(zip(rows, centres)):
-            row_groups[r].append((xc, idx))
-
-        col_map = {}
-        for r, items in row_groups.items():
-            items.sort(key=lambda x: x[0])  # left → right
-            for col_rank, (_, orig_idx) in enumerate(items, start=1):
-                col_map[orig_idx] = col_rank
-
-        return [(rows[i], col_map.get(i, 1)) for i in range(len(dets))]
-
     # ── Stage 3.5: planogram lookup (optional) ────────────────────
     shelf_id      = getattr(payload, "shelf_id", None) or "SHELF-A1"
     use_planogram = getattr(payload, "use_planogram", True)
@@ -817,11 +789,38 @@ async def run_pipeline(
     pog_index: dict[tuple[int,int], Planogram] = {(p.row, p.col): p for p in pog_rows}
     pog_hits:  dict[int, dict] = {}   # detection index → {name, brand, sku}
 
-    # Auto-detect shelf row count from planogram so grid bands are correct.
-    # Falls back to 3 when planogram is empty or disabled.
+    # Auto-detect grid dimensions from planogram.
+    # Falls back to sensible defaults when planogram is empty or disabled.
     num_rows_from_pog = max((p.row for p in pog_rows), default=0)
-    num_rows          = num_rows_from_pog if num_rows_from_pog > 0 else 3
-    grid_positions    = _assign_grid(detections, ih, num_rows=num_rows)
+    num_cols_from_pog = max((p.col for p in pog_rows), default=0)
+    num_rows = num_rows_from_pog if num_rows_from_pog > 0 else 3
+    num_cols = num_cols_from_pog if num_cols_from_pog > 0 else 8
+
+    def _assign_grid(dets: list, img_w: int, img_h: int,
+                     num_rows: int = 3, num_cols: int = 8) -> list[tuple[int, int]]:
+        """
+        Return (row, col) for each detection using proportional position mapping.
+
+        Uses each product's x/y centre as a fraction of image dimensions to map
+        directly to a grid cell — so the assignment is correct even when YOLO
+        misses some shelf positions.  A rank-based approach would compress N
+        detected items into cols 1..N, giving wrong cols when items in the middle
+        of the shelf are not detected.
+        """
+        if not dets:
+            return []
+        band_h = img_h / num_rows
+        band_w = img_w / num_cols
+        result = []
+        for d in dets:
+            xc = (d["bbox"][0] + d["bbox"][2]) / 2
+            yc = (d["bbox"][1] + d["bbox"][3]) / 2
+            row = min(int(yc / band_h), num_rows - 1) + 1
+            col = min(int(xc / band_w), num_cols - 1) + 1
+            result.append((row, col))
+        return result
+
+    grid_positions = _assign_grid(detections, iw, ih, num_rows=num_rows, num_cols=num_cols)
 
     if use_planogram:
         for i, m in enumerate(matches):
@@ -958,6 +957,7 @@ async def run_pipeline(
             "planogram_size":      len(pog_rows),
             "planogram_enabled":   use_planogram,
             "num_rows_detected":   num_rows,
+            "num_cols_detected":   num_cols,
             "clip_ready":          _clip_ready,
             "clip_error":          str(_clip_error) if _clip_error else None,
         },

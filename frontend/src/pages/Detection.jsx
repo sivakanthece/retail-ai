@@ -50,7 +50,7 @@ function PipelineBanner({ currentStage, stats }) {
                 <div style={{ fontSize: 11, color: done ? '#6ee7b7' : active ? '#818cf8' : '#334155', marginTop: 2 }}>
                   {done && s.id === 1 ? `${stats?.stage1_total ?? ''} products found`
                    : done && s.id === 2 ? `${stats?.stage2_classified ?? ''} classified`
-                   : done && s.id === 3 ? `${stats?.stage3_matched ?? 0} matched, ${stats?.stage3_unmatched ?? 0} unmatched`
+                   : done && s.id === 3 ? `${(stats?.stage3_matched ?? 0) + (stats?.stage3_planogram ?? 0) + (stats?.stage3_llm ?? 0)} identified, ${stats?.stage3_unmatched ?? 0} unmatched`
                    : active ? s.desc + '…'
                    : 'Waiting…'}
                 </div>
@@ -1140,20 +1140,31 @@ export default function Detection() {
       {result && (
         <>
           {/* Stats */}
-          <div style={{ display:'flex', gap:14, flexWrap:'wrap', marginBottom:16 }}>
-            {[
-              { label:'Total Detected',    value: totalDetected,                         color:'#1a237e' },
-              { label:'Stage 3 Matched',   value: pipelineStats?.stage3_matched ?? '—',  color:'#7c3aed' },
-              { label:'Unmatched',         value: pipelineStats?.stage3_unmatched ?? '—',color:'#f59e0b' },
-              { label:'Avg Confidence',    value: `${avgConf}%`,                          color:'#00897b' },
-              { label:'Added to DB',       value: savedCount,                             color:'#f57c00' },
-            ].map(s => (
-              <div key={s.label} className="stat-card" style={{ flex:'1 1 120px' }}>
-                <div className="stat-label">{s.label}</div>
-                <div className="stat-value" style={{ color:s.color }}>{s.value}</div>
+          {(() => {
+            const libMatch  = pipelineStats?.stage3_matched   ?? 0;
+            const pogMatch  = pipelineStats?.stage3_planogram ?? 0;
+            const llmMatch  = pipelineStats?.stage3_llm       ?? 0;
+            const totalId   = libMatch + pogMatch + llmMatch;
+            const unmatched = pipelineStats?.stage3_unmatched ?? 0;
+            const statCards = [
+              { label:'Total Detected', value: totalDetected,           color:'#1a237e' },
+              { label:'✅ Identified',  value: pipelineStats ? totalId : '—', color:'#16a34a' },
+              { label:'📚 Library',     value: pipelineStats ? libMatch : '—', color:'#7c3aed' },
+              { label:'📋 Planogram',   value: pipelineStats ? pogMatch : '—', color:'#1d4ed8' },
+              { label:'❓ Unmatched',   value: pipelineStats ? unmatched : '—', color:'#f59e0b' },
+              { label:'Avg Confidence', value: `${avgConf}%`,           color:'#00897b' },
+            ];
+            return (
+              <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:16 }}>
+                {statCards.map(s => (
+                  <div key={s.label} className="stat-card" style={{ flex:'1 1 100px' }}>
+                    <div className="stat-label">{s.label}</div>
+                    <div className="stat-value" style={{ color:s.color }}>{s.value}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* Annotated image */}
           <div className="card">
@@ -1176,7 +1187,7 @@ export default function Detection() {
                 </button>
                 {pipelineStats && (
                   <span style={{ fontSize:12, color:'#64748b' }}>
-                    {pipelineStats.stage3_matched} already matched from library · {pipelineStats.library_size} products in library
+                    {(pipelineStats.stage3_matched ?? 0) + (pipelineStats.stage3_planogram ?? 0)} already identified (library + planogram) · {pipelineStats.library_size} in library
                   </span>
                 )}
               </div>
@@ -1199,16 +1210,22 @@ export default function Detection() {
           {/* Enriched pipeline results table — shows immediately after pipeline */}
           {enriched && !groups && (
             <div className="card">
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }}>
                 <div className="card-title" style={{ margin:0 }}>
                   Pipeline Results — {enriched.length} detections
                 </div>
-                <div style={{ fontSize:12, color:'#64748b' }}>
-                  ✅ Stage 3 matched: <b style={{ color:'#16a34a' }}>{pipelineStats?.stage3_matched}</b>
-                  &nbsp;·&nbsp;
-                  📋 Planogram: <b style={{ color:'#1d4ed8' }}>{pipelineStats?.stage3_planogram ?? 0}</b>
-                  &nbsp;·&nbsp;
-                  ❓ Unmatched: <b style={{ color:'#d97706' }}>{pipelineStats?.stage3_unmatched ?? '—'}</b>
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                  {[
+                    { label:'📚 Library',   val: pipelineStats?.stage3_matched   ?? 0, bg:'#dcfce7', color:'#15803d' },
+                    { label:'📋 Planogram', val: pipelineStats?.stage3_planogram  ?? 0, bg:'#dbeafe', color:'#1d4ed8' },
+                    { label:'🤖 AI',        val: pipelineStats?.stage3_llm        ?? 0, bg:'#ede9fe', color:'#7c3aed' },
+                    { label:'❓ Unmatched', val: pipelineStats?.stage3_unmatched  ?? 0, bg:'#fff7ed', color:'#d97706' },
+                  ].map(b => (
+                    <span key={b.label} style={{
+                      background: b.bg, color: b.color,
+                      padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
+                    }}>{b.label}: {b.val}</span>
+                  ))}
                 </div>
               </div>
 

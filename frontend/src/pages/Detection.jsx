@@ -1367,8 +1367,9 @@ export default function Detection() {
                               {d.brand && (
                                 <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{d.brand}</div>
                               )}
-                              {/* Save planogram crops to library so future scans use CLIP matching */}
-                              {d.planogram_identified && (
+                              {/* Save planogram crops to library so future scans use CLIP matching.
+                                  Trigger on planogram_identified flag OR any matched item with no CLIP score. */}
+                              {(d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product)) && (
                                 <div style={{ marginTop:5 }}>
                                   {libSaveState[i] === 'done' ? (
                                     <span style={{ fontSize:10, color:'#7c3aed', fontWeight:600 }}>✅ Saved to library</span>

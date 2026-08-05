@@ -196,7 +196,7 @@ export default function ProductLibrary() {
           🏪 Product Library
         </div>
         <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 3 }}>
-          Reference images that power Stage 3 fine-grained SKU matching
+          Reference images that power Stage 3 SKU & Planogram matching
         </div>
       </div>
 
@@ -204,15 +204,15 @@ export default function ProductLibrary() {
       <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
         <StageCard
           stage={1} title="Object Detection" status="ready"
-          desc="YOLOv8 detects all products on the shelf and draws bounding boxes."
+          desc="YOLOv8n detects every product on the shelf and produces bounding boxes with confidence scores."
         />
         <StageCard
           stage={2} title="Category Classification" status={clipStatus}
-          desc="CLIP zero-shot assigns each crop to a broad retail category (Beverages, Snacks, etc.)."
+          desc="CLIP zero-shot classifies each crop into a retail category (Beverages, Snacks, Dairy…) using text-similarity prompts."
         />
         <StageCard
-          stage={3} title="SKU Matching" status={clipStatus}
-          desc="CLIP embeddings are compared against this library. Add more reference images for better accuracy."
+          stage={3} title="SKU & Planogram" status={clipStatus}
+          desc="First tries CLIP embedding match against this library (cosine ≥ 0.82). If no library match, falls back to planogram grid-position lookup. Add reference images here to promote planogram hits to library hits on the next scan."
         />
       </div>
 
@@ -354,7 +354,7 @@ export default function ProductLibrary() {
                 <div style={{ fontSize: 13, color: '#94a3b8' }}>
                   {search
                     ? 'Try a different search term.'
-                    : 'Upload reference images to enable Stage 3 SKU matching. After uploading, detected products will be automatically identified.'}
+                    : 'Upload reference images here, or use the "📚 Save to Library" button on planogram-matched rows in the Detection page to build the library automatically.'}
                 </div>
               </div>
             )

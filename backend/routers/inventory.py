@@ -20,6 +20,11 @@ class ProductCreate(BaseModel):
     initial_quantity: int = 0
     shelf_location: str = ""
 
+class ProductPatch(BaseModel):
+    name:                Optional[str] = None
+    category:            Optional[str] = None
+    low_stock_threshold: Optional[int] = None
+
 @router.get("/")
 def list_inventory(
     db: Session = Depends(get_db),
@@ -103,6 +108,33 @@ def create_product(
     db.add(inv)
     db.commit()
     return {"message": "Product created", "id": new_product.id}
+
+@router.patch("/products/{product_id}")
+def patch_product(
+    product_id: int,
+    patch: ProductPatch,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.admin, UserRole.manager)),
+):
+    """Partially update product name, category, or low_stock_threshold."""
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if patch.name is not None:
+        product.name = patch.name.strip()
+    if patch.category is not None:
+        product.category = patch.category.strip()
+    if patch.low_stock_threshold is not None:
+        product.low_stock_threshold = patch.low_stock_threshold
+    db.commit()
+    db.refresh(product)
+    return {
+        "id":                  product.id,
+        "name":                product.name,
+        "category":            product.category,
+        "low_stock_threshold": product.low_stock_threshold,
+    }
+
 
 @router.get("/alerts")
 def get_alerts(

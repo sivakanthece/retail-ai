@@ -117,6 +117,7 @@ class Planogram(Base):
     sku            = Column(String)
     category       = Column(String)
     facings        = Column(Integer, default=1)
+    depth          = Column(Integer, default=1)   # products stacked back-to-front per position
     unit_price_usd = Column(Float, default=0.0)
     planogram_notes= Column(Text)
     created_at     = Column(DateTime, default=datetime.utcnow)

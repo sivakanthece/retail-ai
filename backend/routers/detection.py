@@ -921,6 +921,7 @@ async def run_pipeline(
                     "name":  pog.product_name,
                     "brand": pog.brand or "",
                     "sku":   pog.sku   or "",
+                    "depth": pog.depth if pog.depth else 1,
                 }
                 logger.info(f"[pipeline] Stage 3.5 planogram hit: R{row}C{col} → {pog.product_name}")
 
@@ -1049,6 +1050,7 @@ async def run_pipeline(
             "match_confidence":    match["match_confidence"] if match else None,
             "brand":               final_brand,
             "sku":                 final_sku,
+            "depth":               pog["depth"] if pog else 1,
             "llm_identified":      (not match and not pog) and bool(llm and llm.get("name")),
             "planogram_identified": bool(pog and not match),
             "stage":               id_stage,
@@ -1168,7 +1170,7 @@ def _pipeline_inventory_upsert(enriched: list, db: Session) -> list:
     - Quantity = number of times that product was detected in this image.
     - Creates a new Product row if not found; updates quantity if found.
     """
-    # Group by name → count
+    # Group by name → quantity (depth-aware: each facing × its shelf depth)
     groups: dict[str, dict] = {}
     for d in enriched:
         name = d.get("matched_product")
@@ -1183,7 +1185,8 @@ def _pipeline_inventory_upsert(enriched: list, db: Session) -> list:
                 "brand":    d.get("brand") or "",
                 "count":    0,
             }
-        groups[key]["count"] += 1
+        # Each YOLO detection = 1 visible facing; depth = units behind it
+        groups[key]["count"] += int(d.get("depth") or 1)
 
     saves = []
     for pg in groups.values():

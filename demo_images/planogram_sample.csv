@@ -1,55 +1,55 @@
-shelf_id,shelf_name,row,col,product_name,brand,sku,category,facings,unit_price_usd,planogram_notes
-SHELF-A1,Beverages Aisle,1,1,Coca-Cola Classic 330ml,Coca-Cola,CC-CLASSIC-330,Soda & Energy Drinks,3,1.99,High velocity — 3 facings
-SHELF-A1,Beverages Aisle,1,2,Pepsi Max 330ml,Pepsi,PEPSI-MAX-330,Soda & Energy Drinks,2,1.89,
-SHELF-A1,Beverages Aisle,1,3,Sprite Zero 330ml,Sprite,SPRITE-ZERO-330,Soda & Energy Drinks,2,1.89,
-SHELF-A1,Beverages Aisle,1,4,Fanta Orange 330ml,Fanta,FANTA-ORA-330,Soda & Energy Drinks,2,1.89,
-SHELF-A1,Beverages Aisle,1,5,7-Up 330ml,7-Up,7UP-330,Soda & Energy Drinks,2,1.79,
-SHELF-A1,Beverages Aisle,1,6,Mountain Dew 330ml,Mountain Dew,MTNDEW-330,Soda & Energy Drinks,2,1.99,
-SHELF-A1,Beverages Aisle,2,1,Minute Maid Orange Juice,Minute Maid,MM-OJ-1L,Water & Juice,2,3.49,Refrigerated — keep cold
-SHELF-A1,Beverages Aisle,2,2,Tropicana Apple Juice 1L,Tropicana,TROP-AJ-1L,Water & Juice,2,3.79,
-SHELF-A1,Beverages Aisle,2,3,Ocean Spray Cranberry 1L,Ocean Spray,OS-CRAN-1L,Water & Juice,2,4.29,
-SHELF-A1,Beverages Aisle,2,4,Capri-Sun Fruit Punch,Capri-Sun,CAPRI-FP-10PK,Water & Juice,1,5.49,Multi-pack
-SHELF-A1,Beverages Aisle,2,5,SunnyD Citrus Punch,SunnyD,SUNNYD-CITRUS,Water & Juice,2,2.99,
-SHELF-A1,Beverages Aisle,2,6,V8 Vegetable Juice,V8,V8-VEG-330,Water & Juice,3,1.99,
-SHELF-A1,Beverages Aisle,3,1,Evian Natural Water 750ml,Evian,EVIAN-750,Water & Juice,3,2.49,
-SHELF-A1,Beverages Aisle,3,2,Dasani Purified Water 600ml,Dasani,DASANI-600,Water & Juice,3,1.49,
-SHELF-A1,Beverages Aisle,3,3,Perrier Sparkling 500ml,Perrier,PERRIER-500,Water & Juice,2,2.99,
-SHELF-A1,Beverages Aisle,3,4,Gatorade Cool Blue 32oz,Gatorade,GATOR-CB-32,Soda & Energy Drinks,2,2.29,Sports nutrition section
-SHELF-A1,Beverages Aisle,3,5,Powerade Fruit Punch 32oz,Powerade,PWRD-FP-32,Soda & Energy Drinks,2,2.19,
-SHELF-A1,Beverages Aisle,3,6,Red Bull Energy 250ml,Red Bull,REDBULL-250,Soda & Energy Drinks,3,3.49,Premium placement
-SHELF-B2,Snacks & Confectionery,1,1,Lays Classic Chips 200g,Lay's,LAYS-CLS-200,Chips & Crisps,2,4.49,Eye-level — best seller
-SHELF-B2,Snacks & Confectionery,1,2,Pringles Original 165g,Pringles,PRNG-ORI-165,Chips & Crisps,3,3.99,
-SHELF-B2,Snacks & Confectionery,1,3,Doritos Nacho Cheese 180g,Doritos,DORI-NC-180,Chips & Crisps,2,4.29,
-SHELF-B2,Snacks & Confectionery,1,4,Cheetos Puffs 226g,Cheetos,CHEE-PUF-226,Chips & Crisps,2,4.49,
-SHELF-B2,Snacks & Confectionery,1,5,Ruffles Cheddar 184g,Ruffles,RUFF-CHED-184,Chips & Crisps,2,4.29,
-SHELF-B2,Snacks & Confectionery,1,6,Fritos Original 226g,Fritos,FRIT-ORI-226,Chips & Crisps,2,3.99,
-SHELF-B2,Snacks & Confectionery,2,1,Oreo Original Cookies 154g,Oreo,OREO-ORI-154,Cookies & Crackers,3,3.49,
-SHELF-B2,Snacks & Confectionery,2,2,Chips Ahoy! Chocolate 368g,Chips Ahoy,CAHOY-CHO-368,Cookies & Crackers,2,4.99,
-SHELF-B2,Snacks & Confectionery,2,3,Ritz Crackers Original 200g,Ritz,RITZ-ORI-200,Cookies & Crackers,2,3.79,
-SHELF-B2,Snacks & Confectionery,2,4,Triscuits Original 200g,Triscuit,TRIS-ORI-200,Cookies & Crackers,2,3.59,
-SHELF-B2,Snacks & Confectionery,2,5,Wheat Thins Original 200g,Wheat Thins,WHTHN-ORI-200,Cookies & Crackers,2,3.69,
-SHELF-B2,Snacks & Confectionery,2,6,Goldfish Cheddar 187g,Goldfish,GFISH-CHED-187,Snack Bars & Protein Bars,3,3.29,Family favourite
-SHELF-B2,Snacks & Confectionery,3,1,Snickers Bar 52g,Snickers,SNICK-52,Candy & Chocolate,4,1.79,Impulse buy zone
-SHELF-B2,Snacks & Confectionery,3,2,Kit Kat 4-Finger 45g,Kit Kat,KITKAT-4F-45,Candy & Chocolate,4,1.69,
-SHELF-B2,Snacks & Confectionery,3,3,Twix Caramel Bar 58g,Twix,TWIX-58,Candy & Chocolate,4,1.89,
-SHELF-B2,Snacks & Confectionery,3,4,M&Ms Milk Chocolate 400g,M&Ms,MMS-MC-400,Candy & Chocolate,2,5.99,
-SHELF-B2,Snacks & Confectionery,3,5,Reese's PB Cups 42g,Reese's,REES-PBC-42,Candy & Chocolate,4,1.99,
-SHELF-B2,Snacks & Confectionery,3,6,Skittles Original 61g,Skittles,SKIT-ORI-61,Candy & Chocolate,4,1.79,
-SHELF-C3,Dairy & Alternatives,1,1,Horizon Organic Whole Milk,Horizon,HOR-WHL-64,Milk & Dairy Drinks,2,6.49,Organic section
-SHELF-C3,Dairy & Alternatives,1,2,Fairlife 2% Reduced Fat Milk,Fairlife,FAIR-2PCT-52,Milk & Dairy Drinks,2,5.99,
-SHELF-C3,Dairy & Alternatives,1,3,Lactaid Fat Free Milk 96oz,Lactaid,LACT-FF-96,Milk & Dairy Drinks,1,7.49,Lactose free
-SHELF-C3,Dairy & Alternatives,1,4,Silk Oat Milk Original 64oz,Silk,SILK-OAT-64,Milk & Dairy Drinks,2,5.49,Plant-based section
-SHELF-C3,Dairy & Alternatives,1,5,Almond Breeze Unsweetened,Blue Diamond,BDIAM-ALMD-64,Milk & Dairy Drinks,2,4.99,
-SHELF-C3,Dairy & Alternatives,1,6,Oatly Oat Drink 64oz,Oatly,OATLY-OAT-64,Milk & Dairy Drinks,2,5.99,
-SHELF-C3,Dairy & Alternatives,2,1,Yoplait Vanilla Yogurt 6oz,Yoplait,YOPL-VAN-6,Yogurt,3,1.29,
-SHELF-C3,Dairy & Alternatives,2,2,Chobani Plain Greek 32oz,Chobani,CHOB-PLN-32,Yogurt,2,6.49,
-SHELF-C3,Dairy & Alternatives,2,3,Fage 0% Greek Yogurt 17oz,Fage,FAGE-0PCT-17,Yogurt,2,5.99,
-SHELF-C3,Dairy & Alternatives,2,4,Activia Peach Yogurt 4pk,Activia,ACTV-PEACH-4,Yogurt,2,4.49,Probiotic
-SHELF-C3,Dairy & Alternatives,2,5,Noosa Honey Yoghurt 8oz,Noosa,NOOS-HON-8,Yogurt,2,3.49,Premium
-SHELF-C3,Dairy & Alternatives,2,6,Siggi's Plain Skyr 17oz,Siggi's,SIGG-PLN-17,Yogurt,2,5.79,Icelandic style
-SHELF-C3,Dairy & Alternatives,3,1,Kraft Singles American 24ct,Kraft,KRFT-SNG-24,Cheese,2,4.99,
-SHELF-C3,Dairy & Alternatives,3,2,Sargento Cheddar Slices,Sargento,SARG-CHED-8,Cheese,2,4.49,
-SHELF-C3,Dairy & Alternatives,3,3,Philadelphia Cream Cheese 8oz,Philadelphia,PHIL-CC-8,Cheese,3,3.99,
-SHELF-C3,Dairy & Alternatives,3,4,Babybel Mini Cheese 6pk,Babybel,BBYBL-6PK,Cheese,2,5.99,Premium snack
-SHELF-C3,Dairy & Alternatives,3,5,Frigo String Cheese 12ct,Frigo,FRIG-STR-12,Cheese,2,5.49,
-SHELF-C3,Dairy & Alternatives,3,6,Velveeta Cheese Loaf 32oz,Velveeta,VELV-32,Cheese,1,6.99,
+shelf_id,shelf_name,row,col,product_name,brand,sku,category,facings,unit_price_usd,planogram_notes,depth
+SHELF-A1,Beverages Aisle,1,1,Coca-Cola Classic 330ml,Coca-Cola,CC-CLASSIC-330,Soda & Energy Drinks,3,1.99,High velocity — 3 facings,2
+SHELF-A1,Beverages Aisle,1,2,Pepsi Max 330ml,Pepsi,PEPSI-MAX-330,Soda & Energy Drinks,2,1.89,,2
+SHELF-A1,Beverages Aisle,1,3,Sprite Zero 330ml,Sprite,SPRITE-ZERO-330,Soda & Energy Drinks,2,1.89,,2
+SHELF-A1,Beverages Aisle,1,4,Fanta Orange 330ml,Fanta,FANTA-ORA-330,Soda & Energy Drinks,2,1.89,,2
+SHELF-A1,Beverages Aisle,1,5,7-Up 330ml,7-Up,7UP-330,Soda & Energy Drinks,2,1.79,,2
+SHELF-A1,Beverages Aisle,1,6,Mountain Dew 330ml,Mountain Dew,MTNDEW-330,Soda & Energy Drinks,2,1.99,,2
+SHELF-A1,Beverages Aisle,2,1,Minute Maid Orange Juice,Minute Maid,MM-OJ-1L,Water & Juice,2,3.49,Refrigerated — keep cold,2
+SHELF-A1,Beverages Aisle,2,2,Tropicana Apple Juice 1L,Tropicana,TROP-AJ-1L,Water & Juice,2,3.79,,2
+SHELF-A1,Beverages Aisle,2,3,Ocean Spray Cranberry 1L,Ocean Spray,OS-CRAN-1L,Water & Juice,2,4.29,,2
+SHELF-A1,Beverages Aisle,2,4,Capri-Sun Fruit Punch,Capri-Sun,CAPRI-FP-10PK,Water & Juice,1,5.49,Multi-pack,2
+SHELF-A1,Beverages Aisle,2,5,SunnyD Citrus Punch,SunnyD,SUNNYD-CITRUS,Water & Juice,2,2.99,,2
+SHELF-A1,Beverages Aisle,2,6,V8 Vegetable Juice,V8,V8-VEG-330,Water & Juice,3,1.99,,2
+SHELF-A1,Beverages Aisle,3,1,Evian Natural Water 750ml,Evian,EVIAN-750,Water & Juice,3,2.49,,2
+SHELF-A1,Beverages Aisle,3,2,Dasani Purified Water 600ml,Dasani,DASANI-600,Water & Juice,3,1.49,,2
+SHELF-A1,Beverages Aisle,3,3,Perrier Sparkling 500ml,Perrier,PERRIER-500,Water & Juice,2,2.99,,2
+SHELF-A1,Beverages Aisle,3,4,Gatorade Cool Blue 32oz,Gatorade,GATOR-CB-32,Soda & Energy Drinks,2,2.29,Sports nutrition section,2
+SHELF-A1,Beverages Aisle,3,5,Powerade Fruit Punch 32oz,Powerade,PWRD-FP-32,Soda & Energy Drinks,2,2.19,,2
+SHELF-A1,Beverages Aisle,3,6,Red Bull Energy 250ml,Red Bull,REDBULL-250,Soda & Energy Drinks,3,3.49,Premium placement,2
+SHELF-B2,Snacks & Confectionery,1,1,Lays Classic Chips 200g,Lay's,LAYS-CLS-200,Chips & Crisps,2,4.49,Eye-level — best seller,3
+SHELF-B2,Snacks & Confectionery,1,2,Pringles Original 165g,Pringles,PRNG-ORI-165,Chips & Crisps,3,3.99,,3
+SHELF-B2,Snacks & Confectionery,1,3,Doritos Nacho Cheese 180g,Doritos,DORI-NC-180,Chips & Crisps,2,4.29,,3
+SHELF-B2,Snacks & Confectionery,1,4,Cheetos Puffs 226g,Cheetos,CHEE-PUF-226,Chips & Crisps,2,4.49,,3
+SHELF-B2,Snacks & Confectionery,1,5,Ruffles Cheddar 184g,Ruffles,RUFF-CHED-184,Chips & Crisps,2,4.29,,3
+SHELF-B2,Snacks & Confectionery,1,6,Fritos Original 226g,Fritos,FRIT-ORI-226,Chips & Crisps,2,3.99,,3
+SHELF-B2,Snacks & Confectionery,2,1,Oreo Original Cookies 154g,Oreo,OREO-ORI-154,Cookies & Crackers,3,3.49,,3
+SHELF-B2,Snacks & Confectionery,2,2,Chips Ahoy! Chocolate 368g,Chips Ahoy,CAHOY-CHO-368,Cookies & Crackers,2,4.99,,3
+SHELF-B2,Snacks & Confectionery,2,3,Ritz Crackers Original 200g,Ritz,RITZ-ORI-200,Cookies & Crackers,2,3.79,,3
+SHELF-B2,Snacks & Confectionery,2,4,Triscuits Original 200g,Triscuit,TRIS-ORI-200,Cookies & Crackers,2,3.59,,3
+SHELF-B2,Snacks & Confectionery,2,5,Wheat Thins Original 200g,Wheat Thins,WHTHN-ORI-200,Cookies & Crackers,2,3.69,,3
+SHELF-B2,Snacks & Confectionery,2,6,Goldfish Cheddar 187g,Goldfish,GFISH-CHED-187,Snack Bars & Protein Bars,3,3.29,Family favourite,3
+SHELF-B2,Snacks & Confectionery,3,1,Snickers Bar 52g,Snickers,SNICK-52,Candy & Chocolate,4,1.79,Impulse buy zone,3
+SHELF-B2,Snacks & Confectionery,3,2,Kit Kat 4-Finger 45g,Kit Kat,KITKAT-4F-45,Candy & Chocolate,4,1.69,,3
+SHELF-B2,Snacks & Confectionery,3,3,Twix Caramel Bar 58g,Twix,TWIX-58,Candy & Chocolate,4,1.89,,3
+SHELF-B2,Snacks & Confectionery,3,4,M&Ms Milk Chocolate 400g,M&Ms,MMS-MC-400,Candy & Chocolate,2,5.99,,3
+SHELF-B2,Snacks & Confectionery,3,5,Reese's PB Cups 42g,Reese's,REES-PBC-42,Candy & Chocolate,4,1.99,,3
+SHELF-B2,Snacks & Confectionery,3,6,Skittles Original 61g,Skittles,SKIT-ORI-61,Candy & Chocolate,4,1.79,,3
+SHELF-C3,Dairy & Alternatives,1,1,Horizon Organic Whole Milk,Horizon,HOR-WHL-64,Milk & Dairy Drinks,2,6.49,Organic section,3
+SHELF-C3,Dairy & Alternatives,1,2,Fairlife 2% Reduced Fat Milk,Fairlife,FAIR-2PCT-52,Milk & Dairy Drinks,2,5.99,,3
+SHELF-C3,Dairy & Alternatives,1,3,Lactaid Fat Free Milk 96oz,Lactaid,LACT-FF-96,Milk & Dairy Drinks,1,7.49,Lactose free,3
+SHELF-C3,Dairy & Alternatives,1,4,Silk Oat Milk Original 64oz,Silk,SILK-OAT-64,Milk & Dairy Drinks,2,5.49,Plant-based section,3
+SHELF-C3,Dairy & Alternatives,1,5,Almond Breeze Unsweetened,Blue Diamond,BDIAM-ALMD-64,Milk & Dairy Drinks,2,4.99,,3
+SHELF-C3,Dairy & Alternatives,1,6,Oatly Oat Drink 64oz,Oatly,OATLY-OAT-64,Milk & Dairy Drinks,2,5.99,,3
+SHELF-C3,Dairy & Alternatives,2,1,Yoplait Vanilla Yogurt 6oz,Yoplait,YOPL-VAN-6,Yogurt,3,1.29,,3
+SHELF-C3,Dairy & Alternatives,2,2,Chobani Plain Greek 32oz,Chobani,CHOB-PLN-32,Yogurt,2,6.49,,3
+SHELF-C3,Dairy & Alternatives,2,3,Fage 0% Greek Yogurt 17oz,Fage,FAGE-0PCT-17,Yogurt,2,5.99,,3
+SHELF-C3,Dairy & Alternatives,2,4,Activia Peach Yogurt 4pk,Activia,ACTV-PEACH-4,Yogurt,2,4.49,Probiotic,3
+SHELF-C3,Dairy & Alternatives,2,5,Noosa Honey Yoghurt 8oz,Noosa,NOOS-HON-8,Yogurt,2,3.49,Premium,3
+SHELF-C3,Dairy & Alternatives,2,6,Siggi's Plain Skyr 17oz,Siggi's,SIGG-PLN-17,Yogurt,2,5.79,Icelandic style,3
+SHELF-C3,Dairy & Alternatives,3,1,Kraft Singles American 24ct,Kraft,KRFT-SNG-24,Cheese,2,4.99,,3
+SHELF-C3,Dairy & Alternatives,3,2,Sargento Cheddar Slices,Sargento,SARG-CHED-8,Cheese,2,4.49,,3
+SHELF-C3,Dairy & Alternatives,3,3,Philadelphia Cream Cheese 8oz,Philadelphia,PHIL-CC-8,Cheese,3,3.99,,3
+SHELF-C3,Dairy & Alternatives,3,4,Babybel Mini Cheese 6pk,Babybel,BBYBL-6PK,Cheese,2,5.99,Premium snack,3
+SHELF-C3,Dairy & Alternatives,3,5,Frigo String Cheese 12ct,Frigo,FRIG-STR-12,Cheese,2,5.49,,3
+SHELF-C3,Dairy & Alternatives,3,6,Velveeta Cheese Loaf 32oz,Velveeta,VELV-32,Cheese,1,6.99,,3

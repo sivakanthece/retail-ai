@@ -747,6 +747,7 @@ export default function Detection() {
   const [libSaveState,    setLibSaveState]    = useState({}); // {detectionIndex: 'saving'|'done'|'error'}
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [inventorySaves,  setInventorySaves]  = useState(null); // auto-saved products after pipeline
+  const [enrichedEdits,   setEnrichedEdits]   = useState({}); // {detectionIndex: {name, category}}
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
   const mobileInputRef = useRef();
@@ -766,7 +767,7 @@ export default function Detection() {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
     setError('');
     setResult(null); setGroups(null); setSavedNames({}); setSavedToLibrary({});
-    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null);
+    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null); setEnrichedEdits({});
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
@@ -1242,247 +1243,229 @@ export default function Detection() {
             />
           )}
 
-          {/* Enriched pipeline results table — shows immediately after pipeline */}
-          {enriched && !groups && (
-            <div className="card">
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }}>
-                <div className="card-title" style={{ margin:0 }}>
-                  Pipeline Results — {enriched.length} detections
-                </div>
-                <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-                  {[
-                    { label:'📚 Library',   val: pipelineStats?.stage3_matched   ?? 0, bg:'#dcfce7', color:'#15803d' },
-                    { label:'📋 Planogram', val: pipelineStats?.stage3_planogram  ?? 0, bg:'#dbeafe', color:'#1d4ed8' },
-                    { label:'🤖 AI',        val: pipelineStats?.stage3_llm        ?? 0, bg:'#ede9fe', color:'#7c3aed' },
-                    { label:'❓ Unmatched', val: pipelineStats?.stage3_unmatched  ?? 0, bg:'#fff7ed', color:'#d97706' },
-                  ].map(b => (
-                    <span key={b.label} style={{
-                      background: b.bg, color: b.color,
-                      padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
-                    }}>{b.label}: {b.val}</span>
-                  ))}
-                  {/* ── Bulk "Save All to Library" for planogram-matched rows ── */}
-                  {(() => {
-                    const planogramRows = enriched.filter((d, i) =>
-                      (d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product))
-                    );
-                    const savedCount = enriched.filter((d, i) =>
-                      (d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product)) &&
-                      libSaveState[i] === 'done'
-                    ).length;
-                    const allSaved = planogramRows.length > 0 && savedCount === planogramRows.length;
-                    const anySaving = enriched.some((d, i) => libSaveState[i] === 'saving');
-                    if (planogramRows.length === 0) return null;
-                    return (
+          {/* Enriched pipeline results — grouped by category with quantity per product */}
+          {enriched && !groups && (() => {
+            // Build category → product groups
+            const catMap = {};
+            enriched.forEach((d, i) => {
+              const name = enrichedEdits[i]?.name ?? (d.matched_product || 'Unidentified');
+              const cat  = enrichedEdits[i]?.category ?? d.category;
+              if (!catMap[cat]) catMap[cat] = {};
+              if (!catMap[cat][name]) catMap[cat][name] = { detections: [], qty: 0, firstIdx: i, firstBbox: d.bbox };
+              catMap[cat][name].detections.push({ ...d, _i: i });
+              catMap[cat][name].qty += (d.depth || 1);
+            });
+            const planogramRows = enriched.filter((d, i) =>
+              d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product));
+            const savedLibCount = planogramRows.filter((d, i) => libSaveState[enriched.indexOf(d)] === 'done').length;
+            const allSaved = planogramRows.length > 0 && savedLibCount === planogramRows.length;
+            const anySaving = enriched.some((d, i) => libSaveState[i] === 'saving');
+
+            return (
+              <div className="card">
+                {/* Header */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }}>
+                  <div className="card-title" style={{ margin:0 }}>
+                    Pipeline Results — {enriched.length} detections, {Object.keys(catMap).length} categories
+                  </div>
+                  <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+                    {[
+                      { label:'📚 Library',   val: pipelineStats?.stage3_matched   ?? 0, bg:'#dcfce7', color:'#15803d' },
+                      { label:'📋 Planogram', val: pipelineStats?.stage3_planogram  ?? 0, bg:'#dbeafe', color:'#1d4ed8' },
+                      { label:'🤖 AI',        val: pipelineStats?.stage3_llm        ?? 0, bg:'#ede9fe', color:'#7c3aed' },
+                      { label:'❓ Unmatched', val: pipelineStats?.stage3_unmatched  ?? 0, bg:'#fff7ed', color:'#d97706' },
+                    ].map(b => (
+                      <span key={b.label} style={{ background:b.bg, color:b.color, padding:'4px 10px', borderRadius:6, fontSize:12, fontWeight:700 }}>
+                        {b.label}: {b.val}
+                      </span>
+                    ))}
+                    {planogramRows.length > 0 && (
                       <button
                         onClick={handleBulkSavePlanogramToLibrary}
                         disabled={allSaved || anySaving}
                         style={{
-                          padding: '5px 14px', borderRadius: 6, border: '1px solid #c4b5fd',
+                          padding:'5px 14px', borderRadius:6, border:'1px solid #c4b5fd',
                           background: allSaved ? '#f5f3ff' : 'linear-gradient(135deg,#7c3aed,#6d28d9)',
-                          color: allSaved ? '#7c3aed' : '#fff',
-                          fontSize: 12, fontWeight: 700, cursor: (allSaved || anySaving) ? 'default' : 'pointer',
-                          opacity: (allSaved || anySaving) ? 0.7 : 1,
-                          display: 'flex', alignItems: 'center', gap: 5,
+                          color: allSaved ? '#7c3aed' : '#fff', fontSize:12, fontWeight:700,
+                          cursor:(allSaved || anySaving) ? 'default' : 'pointer',
+                          opacity:(allSaved || anySaving) ? 0.7 : 1,
                         }}
                       >
-                        {anySaving ? '⏳ Saving…'
-                          : allSaved ? '✅ All in Library'
-                          : `📚 Save All to Library (${planogramRows.length - savedCount})`}
+                        {anySaving ? '⏳ Saving…' : allSaved ? '✅ All in Library' : `📚 Save All to Library (${planogramRows.length - savedLibCount})`}
                       </button>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              {/* ── Auto-saved inventory banner ── */}
-              {inventorySaves && inventorySaves.length > 0 && (
-                <div style={{
-                  background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8,
-                  padding: '10px 14px', marginBottom: 14,
-                  display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#15803d',
-                }}>
-                  <span style={{ fontSize: 18 }}>📦</span>
-                  <span>
-                    <b>{inventorySaves.length} product{inventorySaves.length !== 1 ? 's' : ''}</b> auto-saved to inventory
-                    ({inventorySaves.filter(s => s.status === 'created').length} new,{' '}
-                    {inventorySaves.filter(s => s.status === 'updated').length} updated).
-                    {' '}View in <a href="/inventory" style={{ color:'#15803d', fontWeight:700 }}>📦 Inventory</a>.
-                  </span>
-                </div>
-              )}
-
-              {/* Compliance summary bar */}
-              {compliance && (
-                <div style={{
-                  display:'flex', gap:12, flexWrap:'wrap', marginBottom:14,
-                  padding:'12px 14px', background:'#f8fafc', borderRadius:8,
-                  border:'1px solid #e2e8f0',
-                }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#0f172a', marginRight:4 }}>
-                    📋 Planogram Compliance:
+                    )}
                   </div>
-                  <span style={{ fontWeight:800, fontSize:16, color: compliance.compliance_rate >= 80 ? '#15803d' : compliance.compliance_rate >= 50 ? '#d97706' : '#dc2626' }}>
-                    {compliance.compliance_rate}%
-                  </span>
-                  {[
-                    { label:'✅ OK',          val: compliance.ok,           bg:'#dcfce7', color:'#15803d' },
-                    { label:'⚠️ Mismatch',   val: compliance.mismatch,     bg:'#fee2e2', color:'#dc2626' },
-                    { label:'❓ Unidentified',val: compliance.unidentified,  bg:'#fff7ed', color:'#c2410c' },
-                    { label:'— No Data',      val: compliance.no_planogram, bg:'#f1f5f9', color:'#64748b' },
-                  ].map(b => (
-                    <span key={b.label} style={{
-                      background:b.bg, color:b.color,
-                      padding:'2px 10px', borderRadius:4, fontSize:12, fontWeight:600,
-                    }}>{b.label}: {b.val}</span>
-                  ))}
                 </div>
-              )}
 
-              <div style={{ overflowX:'auto' }}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Preview</th>
-                      <th>Category</th>
-                      <th>Identified Product</th>
-                      <th>Grid</th>
-                      <th>Compliance</th>
-                      <th>Match</th>
-                      <th>YOLO Conf.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {enriched.map((d, i) => {
-                      const complianceColors = {
-                        ok:           { bg:'#dcfce7', color:'#15803d', label:'✅ OK' },
-                        mismatch:     { bg:'#fee2e2', color:'#dc2626', label:'⚠️ Mismatch' },
-                        unidentified: { bg:'#fff7ed', color:'#c2410c', label:'❓ Unidentified' },
-                        no_planogram: { bg:'#f1f5f9', color:'#64748b', label:'— No Data' },
-                      };
-                      const cs = complianceColors[d.compliance] || complianceColors.no_planogram;
+                {/* Auto-saved inventory banner */}
+                {inventorySaves && inventorySaves.length > 0 && (
+                  <div style={{ background:'#f0fdf4', border:'1px solid #86efac', borderRadius:8,
+                    padding:'10px 14px', marginBottom:14, display:'flex', alignItems:'center', gap:10, fontSize:13, color:'#15803d' }}>
+                    <span style={{ fontSize:18 }}>📦</span>
+                    <span>
+                      <b>{inventorySaves.length} product{inventorySaves.length !== 1 ? 's' : ''}</b> auto-saved to inventory
+                      ({inventorySaves.filter(s => s.status === 'created').length} new,{' '}
+                      {inventorySaves.filter(s => s.status === 'updated').length} updated).
+                      {' '}View in <a href="/inventory" style={{ color:'#15803d', fontWeight:700 }}>📦 Inventory</a>.
+                    </span>
+                  </div>
+                )}
 
-                      // Match confidence cell — meaningful label per source
-                      let matchCell;
-                      if (d.match_confidence) {
-                        matchCell = (
-                          <span style={{
-                            fontWeight:700, color:'#16a34a', fontSize:12,
-                            background:'#dcfce7', padding:'2px 8px', borderRadius:4,
-                          }}>
-                            {(d.match_confidence * 100).toFixed(0)}% CLIP
-                          </span>
-                        );
-                      } else if (d.planogram_identified) {
-                        matchCell = (
-                          <span style={{
-                            fontWeight:700, color:'#1d4ed8', fontSize:12,
-                            background:'#dbeafe', padding:'2px 8px', borderRadius:4,
-                          }}>
-                            📋 Grid
-                          </span>
-                        );
-                      } else if (d.llm_identified) {
-                        matchCell = (
-                          <span style={{
-                            fontWeight:700, color:'#7c3aed', fontSize:12,
-                            background:'#ede9fe', padding:'2px 8px', borderRadius:4,
-                          }}>
-                            🤖 AI
-                          </span>
-                        );
-                      } else {
-                        matchCell = <span style={{ color:'#cbd5e1', fontSize:12 }}>—</span>;
-                      }
+                {/* Compliance summary */}
+                {compliance && (
+                  <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:14,
+                    padding:'12px 14px', background:'#f8fafc', borderRadius:8, border:'1px solid #e2e8f0' }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#0f172a', marginRight:4 }}>📋 Planogram Compliance:</div>
+                    <span style={{ fontWeight:800, fontSize:16, color: compliance.compliance_rate >= 80 ? '#15803d' : compliance.compliance_rate >= 50 ? '#d97706' : '#dc2626' }}>
+                      {compliance.compliance_rate}%
+                    </span>
+                    {[
+                      { label:'✅ OK',           val:compliance.ok,           bg:'#dcfce7', color:'#15803d' },
+                      { label:'⚠️ Mismatch',    val:compliance.mismatch,     bg:'#fee2e2', color:'#dc2626' },
+                      { label:'❓ Unidentified', val:compliance.unidentified,  bg:'#fff7ed', color:'#c2410c' },
+                      { label:'— No Data',       val:compliance.no_planogram, bg:'#f1f5f9', color:'#64748b' },
+                    ].map(b => (
+                      <span key={b.label} style={{ background:b.bg, color:b.color, padding:'2px 10px', borderRadius:4, fontSize:12, fontWeight:600 }}>
+                        {b.label}: {b.val}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-                      return (
-                      <tr key={i} style={{
-                        background: d.matched_product
-                          ? d.planogram_identified ? 'rgba(219,234,254,0.25)'
-                          : d.llm_identified      ? 'rgba(237,233,254,0.2)'
-                          : 'rgba(220,252,231,0.2)'
-                          : undefined,
-                      }}>
-                        <td style={{ color:'#94a3b8', fontSize:11, fontWeight:600 }}>{i + 1}</td>
-                        <td><CropThumb imageSrc={preview} bbox={d.bbox} size={48} /></td>
-                        <td>
-                          <span style={{
-                            background:'#ede9fe', color:'#6d28d9',
-                            borderRadius:99, padding:'3px 10px',
-                            fontSize:11, fontWeight:600,
-                          }}>
-                            {d.category}
-                          </span>
-                        </td>
-                        <td>
-                          {d.matched_product ? (
-                            <div>
-                              <span style={{ fontWeight:600, color:'#1e293b', fontSize:13 }}>{d.matched_product}</span>
-                              {d.planogram_identified ? (
-                                <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
-                                  background:'#dbeafe', color:'#1d4ed8', fontWeight:700 }}>📋 Planogram</span>
-                              ) : d.llm_identified ? (
-                                <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
-                                  background:'#ede9fe', color:'#7c3aed', fontWeight:700 }}>🤖 AI</span>
-                              ) : (
-                                <span style={{ marginLeft:5, fontSize:9, padding:'1px 6px', borderRadius:3,
-                                  background:'#dcfce7', color:'#15803d', fontWeight:700 }}>📚 Library</span>
-                              )}
-                              {d.brand && (
-                                <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{d.brand}</div>
-                              )}
-                              {/* Save planogram crops to library so future scans use CLIP matching.
-                                  Trigger on planogram_identified flag OR any matched item with no CLIP score. */}
-                              {(d.planogram_identified || (!d.match_confidence && !d.llm_identified && d.matched_product)) && (
-                                <div style={{ marginTop:5 }}>
-                                  {libSaveState[i] === 'done' ? (
-                                    <span style={{ fontSize:10, color:'#7c3aed', fontWeight:600 }}>✅ Saved to library</span>
-                                  ) : libSaveState[i] === 'saving' ? (
-                                    <span style={{ fontSize:10, color:'#64748b' }}>⏳ Saving…</span>
-                                  ) : libSaveState[i] === 'error' ? (
-                                    <span style={{ fontSize:10, color:'#dc2626' }}>❌ Failed (CLIP unavailable?)</span>
+                {/* Category-grouped product table */}
+                {Object.entries(catMap).map(([cat, products]) => (
+                  <div key={cat} style={{ marginBottom:18 }}>
+                    {/* Category header */}
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                      <span style={{ background:'#ede9fe', color:'#6d28d9', borderRadius:99,
+                        padding:'4px 14px', fontSize:12, fontWeight:700 }}>
+                        {cat}
+                      </span>
+                      <span style={{ fontSize:12, color:'#64748b' }}>
+                        {Object.keys(products).length} product{Object.keys(products).length !== 1 ? 's' : ''} · {' '}
+                        {Object.values(products).reduce((s, p) => s + p.qty, 0)} units total
+                      </span>
+                    </div>
+
+                    <div style={{ overflowX:'auto' }}>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Preview</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Qty</th>
+                            <th>Source</th>
+                            <th>Grid</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(products).map(([name, grp]) => {
+                            const firstD = grp.detections[0];
+                            const isEditing = enrichedEdits[grp.firstIdx]?._editing;
+                            const editName = enrichedEdits[grp.firstIdx]?.name ?? name;
+                            const editCat  = enrichedEdits[grp.firstIdx]?.category ?? cat;
+
+                            const setEdit = (field, val) => {
+                              setEnrichedEdits(prev => ({
+                                ...prev,
+                                ...Object.fromEntries(grp.detections.map(d => [d._i, {
+                                  ...(prev[d._i] || {}),
+                                  name:     field === 'name'     ? val : (prev[d._i]?.name     ?? name),
+                                  category: field === 'category' ? val : (prev[d._i]?.category ?? cat),
+                                  _editing: true,
+                                }])),
+                              }));
+                            };
+                            const clearEditing = () => {
+                              setEnrichedEdits(prev => ({
+                                ...prev,
+                                ...Object.fromEntries(grp.detections.map(d => [d._i, { ...(prev[d._i] || {}), _editing: false }])),
+                              }));
+                            };
+
+                            // Source badge
+                            let srcBadge;
+                            if (firstD.match_confidence) {
+                              srcBadge = <span style={{ background:'#dcfce7', color:'#15803d', padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:700 }}>{(firstD.match_confidence*100).toFixed(0)}% CLIP</span>;
+                            } else if (firstD.planogram_identified) {
+                              srcBadge = <span style={{ background:'#dbeafe', color:'#1d4ed8', padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:700 }}>📋 Grid</span>;
+                            } else if (firstD.llm_identified) {
+                              srcBadge = <span style={{ background:'#ede9fe', color:'#7c3aed', padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:700 }}>🤖 AI</span>;
+                            } else {
+                              srcBadge = <span style={{ color:'#cbd5e1', fontSize:11 }}>—</span>;
+                            }
+
+                            return (
+                              <tr key={name}>
+                                <td><CropThumb imageSrc={preview} bbox={grp.firstBbox} size={48} /></td>
+                                <td>
+                                  {isEditing ? (
+                                    <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                                      <input value={editName} onChange={e => setEdit('name', e.target.value)}
+                                        style={{ fontSize:12, padding:'3px 8px', borderRadius:4, border:'1px solid #c4b5fd', width:160 }} />
+                                      <button onClick={clearEditing}
+                                        style={{ fontSize:11, padding:'2px 8px', borderRadius:4, background:'#f5f3ff', color:'#6d28d9', border:'1px solid #c4b5fd', cursor:'pointer' }}>
+                                        ✓
+                                      </button>
+                                    </div>
                                   ) : (
-                                    <button
-                                      onClick={() => handleSavePlanogramCrop(i, d.matched_product, d.bbox)}
-                                      style={{
-                                        fontSize:10, padding:'2px 9px', borderRadius:4, cursor:'pointer',
-                                        background:'#f5f3ff', color:'#6d28d9',
-                                        border:'1px solid #c4b5fd', fontWeight:600,
-                                      }}
-                                    >
-                                      📚 Save to Library
-                                    </button>
+                                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                                      <span style={{ fontWeight:600, fontSize:13, color:'#1e293b' }}>
+                                        {enrichedEdits[grp.firstIdx]?.name ?? name}
+                                      </span>
+                                      {firstD.brand && <span style={{ fontSize:10, color:'#64748b' }}>{firstD.brand}</span>}
+                                      <button onClick={() => setEdit('name', enrichedEdits[grp.firstIdx]?.name ?? name)}
+                                        title="Edit product name"
+                                        style={{ fontSize:10, background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:'0 2px' }}>
+                                        ✏️
+                                      </button>
+                                    </div>
                                   )}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <span style={{ color:'#94a3b8', fontSize:12, fontStyle:'italic' }}>Not identified</span>
-                          )}
-                        </td>
-                        <td style={{ fontSize:11, color:'#64748b', fontFamily:'monospace', fontWeight:600 }}>
-                          {d.grid_row != null ? `R${d.grid_row}C${d.grid_col}` : '—'}
-                        </td>
-                        <td>
-                          <span style={{
-                            background: cs.bg, color: cs.color,
-                            padding:'2px 8px', borderRadius:4,
-                            fontSize:11, fontWeight:700,
-                          }}>{cs.label}</span>
-                        </td>
-                        <td>{matchCell}</td>
-                        <td style={{ color:'#64748b', fontSize:12 }}>
-                          {(d.confidence * 100).toFixed(0)}%
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  </tbody>
-                </table>
+                                </td>
+                                <td>
+                                  {isEditing ? (
+                                    <input value={editCat} onChange={e => setEdit('category', e.target.value)}
+                                      style={{ fontSize:12, padding:'3px 8px', borderRadius:4, border:'1px solid #c4b5fd', width:140 }} />
+                                  ) : (
+                                    <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                                      <span style={{ background:'#ede9fe', color:'#6d28d9', borderRadius:99, padding:'2px 10px', fontSize:11, fontWeight:600 }}>
+                                        {enrichedEdits[grp.firstIdx]?.category ?? cat}
+                                      </span>
+                                      <button onClick={() => setEdit('category', enrichedEdits[grp.firstIdx]?.category ?? cat)}
+                                        title="Edit category"
+                                        style={{ fontSize:10, background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:'0 2px' }}>
+                                        ✏️
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+                                <td>
+                                  <span style={{ background:'#dbeafe', color:'#1d4ed8', borderRadius:10,
+                                    padding:'2px 10px', fontSize:13, fontWeight:700 }}>
+                                    {grp.qty} units
+                                  </span>
+                                  {grp.qty > grp.detections.length && (
+                                    <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>
+                                      {grp.detections.length} facing{grp.detections.length !== 1 ? 's' : ''} × depth
+                                    </div>
+                                  )}
+                                </td>
+                                <td>{srcBadge}</td>
+                                <td style={{ fontSize:11, color:'#64748b', fontFamily:'monospace', fontWeight:600 }}>
+                                  {grp.detections.map(d => d.grid_row != null ? `R${d.grid_row}C${d.grid_col}` : '—').join(', ')}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Grouped product table — shown only after identification */}
           {groups && (

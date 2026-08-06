@@ -28,6 +28,7 @@ export default function Planogram() {
   const [importMsg, setImportMsg]     = useState(null);
   const [importErr, setImportErr]     = useState(null);
   const [viewMode, setViewMode]       = useState('grid'); // 'grid' | 'table'
+  const [depthEdits, setDepthEdits]   = useState({}); // {entryId: value}
   const fileRef = useRef();
 
   // ── Load shelf list ───────────────────────────────────────────
@@ -79,6 +80,33 @@ export default function Planogram() {
     if (!window.confirm('Delete this planogram entry?')) return;
     await api.delete(`/planogram/${id}`);
     loadEntries(selectedShelf);
+  };
+
+  // ── Save depth edit ───────────────────────────────────────────
+  const saveDepth = async (entry) => {
+    const val = parseInt(depthEdits[entry.id]);
+    if (isNaN(val) || val < 1) return;
+    try {
+      await api.put(`/planogram/${entry.id}`, {
+        store_id:        entry.store_id,
+        shelf_id:        entry.shelf_id,
+        shelf_name:      entry.shelf_name || '',
+        row:             entry.row,
+        col:             entry.col,
+        product_name:    entry.product_name,
+        brand:           entry.brand || '',
+        sku:             entry.sku   || '',
+        category:        entry.category || '',
+        facings:         entry.facings || 1,
+        depth:           val,
+        unit_price_usd:  entry.unit_price_usd || 0,
+        planogram_notes: entry.planogram_notes || '',
+      });
+      setDepthEdits(prev => { const n = {...prev}; delete n[entry.id]; return n; });
+      loadEntries(selectedShelf);
+    } catch (e) {
+      alert('Save failed: ' + (e.response?.data?.detail || e.message));
+    }
   };
 
   // ── Grid view helpers ─────────────────────────────────────────
@@ -220,11 +248,17 @@ export default function Planogram() {
                               <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
                                 {entry.sku} · ${entry.unit_price_usd?.toFixed(2)}
                               </div>
-                              <div style={{ marginTop: 4 }}>
+                              <div style={{ marginTop: 4, display:'flex', gap:4, flexWrap:'wrap', alignItems:'center' }}>
                                 <span style={{
                                   fontSize: 9, background: '#eff6ff', color: '#1d4ed8',
                                   padding: '1px 5px', borderRadius: 3, fontWeight: 600,
                                 }}>{entry.category}</span>
+                                <span style={{
+                                  fontSize: 9, background: '#fef3c7', color: '#92400e',
+                                  padding: '1px 5px', borderRadius: 3, fontWeight: 600,
+                                }} title="Shelf depth (units stacked back-to-front)">
+                                  ↕ {entry.depth ?? 1}
+                                </span>
                               </div>
                               <button
                                 onClick={() => handleDelete(entry.id)}
@@ -260,7 +294,7 @@ export default function Planogram() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ background: '#f1f5f9' }}>
-                {['Row', 'Col', 'Product', 'Brand', 'SKU', 'Category', 'Facings', 'Price', ''].map(h => (
+                {['Row', 'Col', 'Product', 'Brand', 'SKU', 'Category', 'Facings', 'Depth', 'Price', ''].map(h => (
                   <th key={h} style={{
                     padding: '8px 12px', textAlign: 'left',
                     color: '#64748b', fontSize: 11, fontWeight: 700,
@@ -270,30 +304,60 @@ export default function Planogram() {
               </tr>
             </thead>
             <tbody>
-              {entries.map(e => (
-                <tr key={e.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '7px 12px', color: '#475569' }}>{e.row}</td>
-                  <td style={{ padding: '7px 12px', color: '#475569' }}>{e.col}</td>
-                  <td style={{ padding: '7px 12px', fontWeight: 600, color: '#0f172a' }}>{e.product_name}</td>
-                  <td style={{ padding: '7px 12px', color: '#475569' }}>{e.brand}</td>
-                  <td style={{ padding: '7px 12px', color: '#64748b', fontFamily: 'monospace', fontSize: 11 }}>{e.sku}</td>
-                  <td style={{ padding: '7px 12px' }}>
-                    <span style={{
-                      background: '#eff6ff', color: '#1d4ed8',
-                      padding: '2px 6px', borderRadius: 3, fontSize: 11, fontWeight: 600,
-                    }}>{e.category}</span>
-                  </td>
-                  <td style={{ padding: '7px 12px', color: '#475569' }}>{e.facings}</td>
-                  <td style={{ padding: '7px 12px', color: '#475569' }}>${e.unit_price_usd?.toFixed(2)}</td>
-                  <td style={{ padding: '7px 12px' }}>
-                    <button onClick={() => handleDelete(e.id)} style={{
-                      background: '#fee2e2', color: '#dc2626',
-                      border: 'none', borderRadius: 4,
-                      padding: '2px 8px', cursor: 'pointer', fontSize: 11,
-                    }}>Delete</button>
-                  </td>
-                </tr>
-              ))}
+              {entries.map(e => {
+                const editingDepth = depthEdits[e.id] !== undefined;
+                return (
+                  <tr key={e.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '7px 12px', color: '#475569' }}>{e.row}</td>
+                    <td style={{ padding: '7px 12px', color: '#475569' }}>{e.col}</td>
+                    <td style={{ padding: '7px 12px', fontWeight: 600, color: '#0f172a' }}>{e.product_name}</td>
+                    <td style={{ padding: '7px 12px', color: '#475569' }}>{e.brand}</td>
+                    <td style={{ padding: '7px 12px', color: '#64748b', fontFamily: 'monospace', fontSize: 11 }}>{e.sku}</td>
+                    <td style={{ padding: '7px 12px' }}>
+                      <span style={{
+                        background: '#eff6ff', color: '#1d4ed8',
+                        padding: '2px 6px', borderRadius: 3, fontSize: 11, fontWeight: 600,
+                      }}>{e.category}</span>
+                    </td>
+                    <td style={{ padding: '7px 12px', color: '#475569' }}>{e.facings}</td>
+                    {/* Depth — inline editable */}
+                    <td style={{ padding: '7px 12px' }}>
+                      {editingDepth ? (
+                        <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                          <input
+                            type="number" min="1"
+                            value={depthEdits[e.id]}
+                            onChange={ev => setDepthEdits(prev => ({ ...prev, [e.id]: ev.target.value }))}
+                            style={{ width:50, fontSize:12, padding:'2px 5px', borderRadius:4, border:'1px solid #c4b5fd' }}
+                          />
+                          <button onClick={() => saveDepth(e)}
+                            style={{ background:'#6d28d9', color:'#fff', border:'none', borderRadius:3, padding:'2px 6px', cursor:'pointer', fontSize:11 }}>✓</button>
+                          <button onClick={() => setDepthEdits(prev => { const n={...prev}; delete n[e.id]; return n; })}
+                            style={{ background:'#eee', border:'none', borderRadius:3, padding:'2px 5px', cursor:'pointer', fontSize:11 }}>✕</button>
+                        </div>
+                      ) : (
+                        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                          <span style={{ fontWeight:600, color:'#475569' }}>{e.depth ?? 1}</span>
+                          <button
+                            onClick={() => setDepthEdits(prev => ({ ...prev, [e.id]: e.depth ?? 1 }))}
+                            title="Edit depth"
+                            style={{ fontSize:10, background:'none', border:'none', cursor:'pointer', color:'#94a3b8' }}>
+                            ✏️
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ padding: '7px 12px', color: '#475569' }}>${e.unit_price_usd?.toFixed(2)}</td>
+                    <td style={{ padding: '7px 12px' }}>
+                      <button onClick={() => handleDelete(e.id)} style={{
+                        background: '#fee2e2', color: '#dc2626',
+                        border: 'none', borderRadius: 4,
+                        padding: '2px 8px', cursor: 'pointer', fontSize: 11,
+                      }}>Delete</button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           <div style={{ marginTop: 8, color: '#94a3b8', fontSize: 12 }}>

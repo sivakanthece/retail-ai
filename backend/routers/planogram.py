@@ -39,6 +39,7 @@ class PlanogramEntry(BaseModel):
     sku:             Optional[str] = ""
     category:        Optional[str] = ""
     facings:         int = 1
+    depth:           int = 1   # units stacked back-to-front per shelf position
     unit_price_usd:  float = 0.0
     planogram_notes: Optional[str] = ""
 
@@ -71,6 +72,7 @@ def _row_to_dict(r: Planogram) -> dict:
         "sku":            r.sku,
         "category":       r.category,
         "facings":        r.facings,
+        "depth":          r.depth if r.depth is not None else 1,
         "unit_price_usd": r.unit_price_usd,
         "planogram_notes":r.planogram_notes,
         "created_at":     r.created_at.isoformat() if r.created_at else None,
@@ -217,6 +219,7 @@ async def import_csv(
                 sku             = row.get("sku", "").strip(),
                 category        = row.get("category", "").strip(),
                 facings         = int(row.get("facings", 1) or 1),
+                depth           = int(row.get("depth", 1) or 1),
                 unit_price_usd  = float(row.get("unit_price_usd", 0) or 0),
                 planogram_notes = row.get("planogram_notes", "").strip(),
             )

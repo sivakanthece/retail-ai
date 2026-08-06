@@ -12,7 +12,7 @@ FRONTEND_BUILD = os.path.join(os.path.dirname(__file__), "..", "frontend", "buil
 def _warmup_models():
     """Download and pre-load models at startup so the first request is instant."""
     import os, logging
-    logger = logging.getLogger("startup")
+    logger = logging.getLogger("start up")
 
     # ── Download best.pt from HF Model Hub if not on disk ────────────────────
     from config import settings

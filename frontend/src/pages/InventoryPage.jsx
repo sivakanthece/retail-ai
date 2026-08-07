@@ -13,7 +13,8 @@ export default function InventoryPage({ user }) {
   const [newProd, setNewProd] = useState({ sku:'', name:'', category:'', low_stock_threshold:10, initial_quantity:0, shelf_location:'' });
   // Inline patch state — {productId: {threshold, name, category, _editing}}
   const [patches, setPatches] = useState({});
-  const canEdit = ['admin','manager'].includes(user?.role);
+  const canEdit    = ['admin','manager'].includes(user?.role);
+  const canPatch   = !!user;  // any logged-in user can edit name/category/threshold
 
   const load = () => {
     setLoading(true);
@@ -104,7 +105,7 @@ export default function InventoryPage({ user }) {
                   <th>Location</th>
                   <th>Threshold</th>
                   <th>Status</th>
-                  {canEdit && <th>Actions</th>}
+                  {(canEdit || canPatch) && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -182,11 +183,11 @@ export default function InventoryPage({ user }) {
                       </td>
 
                       {/* Actions */}
-                      {canEdit && (
+                      {(canEdit || canPatch) && (
                         <td>
                           <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                            {/* Qty/location edit */}
-                            {isEditingQty ? (
+                            {/* Qty/location edit — admin/manager only */}
+                            {canEdit && (isEditingQty ? (
                               <>
                                 <button className="btn btn-primary btn-sm" onClick={() => saveEdit(item.id)}>Save</button>
                                 <button className="btn btn-sm" style={{ background:'#eee' }} onClick={() => setEditId(null)}>✕</button>
@@ -196,7 +197,7 @@ export default function InventoryPage({ user }) {
                                 onClick={() => { setEditId(item.id); setEditQty(item.quantity); setEditLoc(item.shelf_location); }}>
                                 Qty
                               </button>
-                            )}
+                            ))}
                             {/* Name/category/threshold patch */}
                             {isEditingPatch ? (
                               <>

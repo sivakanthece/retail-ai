@@ -745,6 +745,7 @@ export default function Detection() {
   const [shelves,         setShelves]         = useState([]);
   const [usePlanogram,    setUsePlanogram]    = useState(true); // toggle planogram compliance
   const [libSaveState,    setLibSaveState]    = useState({}); // {detectionIndex: 'saving'|'done'|'error'}
+  const [libBulkProgress, setLibBulkProgress] = useState(null); // {done, total} for bulk save
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [inventorySaves,  setInventorySaves]  = useState(null); // auto-saved products after pipeline
   const [enrichedEdits,   setEnrichedEdits]   = useState({}); // {detectionIndex: {name, category}}
@@ -767,7 +768,7 @@ export default function Detection() {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
     setError('');
     setResult(null); setGroups(null); setSavedNames({}); setSavedToLibrary({});
-    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null); setEnrichedEdits({});
+    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null); setEnrichedEdits({}); setLibBulkProgress(null);
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
@@ -970,7 +971,7 @@ export default function Detection() {
     }
   };
 
-  // Bulk-save ALL planogram-matched crops to CLIP library in one click
+  // Bulk-save ALL planogram-matched crops to CLIP library — parallel batches of 4
   const handleBulkSavePlanogramToLibrary = async () => {
     if (!enriched || !result) return;
     const toSave = enriched
@@ -980,9 +981,22 @@ export default function Detection() {
         libSaveState[i] !== 'done' && libSaveState[i] !== 'saving'
       );
     if (!toSave.length) return;
-    for (const { d, i } of toSave) {
-      await handleSavePlanogramCrop(i, d.matched_product, d.bbox);
+
+    const total = toSave.length;
+    let done = 0;
+    setLibBulkProgress({ done: 0, total });
+
+    // Run in parallel batches of 4 to stay fast but not overwhelm the server
+    const BATCH = 4;
+    for (let b = 0; b < toSave.length; b += BATCH) {
+      const batch = toSave.slice(b, b + BATCH);
+      await Promise.allSettled(
+        batch.map(({ d, i }) => handleSavePlanogramCrop(i, d.matched_product, d.bbox))
+      );
+      done += batch.length;
+      setLibBulkProgress({ done, total });
     }
+    setLibBulkProgress(null);
   };
 
   const savedCount    = Object.keys(savedNames).length;
@@ -1280,19 +1294,33 @@ export default function Detection() {
                       </span>
                     ))}
                     {planogramRows.length > 0 && (
-                      <button
-                        onClick={handleBulkSavePlanogramToLibrary}
-                        disabled={allSaved || anySaving}
-                        style={{
-                          padding:'5px 14px', borderRadius:6, border:'1px solid #c4b5fd',
-                          background: allSaved ? '#f5f3ff' : 'linear-gradient(135deg,#7c3aed,#6d28d9)',
-                          color: allSaved ? '#7c3aed' : '#fff', fontSize:12, fontWeight:700,
-                          cursor:(allSaved || anySaving) ? 'default' : 'pointer',
-                          opacity:(allSaved || anySaving) ? 0.7 : 1,
-                        }}
-                      >
-                        {anySaving ? '⏳ Saving…' : allSaved ? '✅ All in Library' : `📚 Save All to Library (${planogramRows.length - savedLibCount})`}
-                      </button>
+                      <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                        <button
+                          onClick={handleBulkSavePlanogramToLibrary}
+                          disabled={allSaved || !!libBulkProgress}
+                          style={{
+                            padding:'5px 14px', borderRadius:6, border:'1px solid #c4b5fd',
+                            background: allSaved ? '#f5f3ff' : 'linear-gradient(135deg,#7c3aed,#6d28d9)',
+                            color: allSaved ? '#7c3aed' : '#fff', fontSize:12, fontWeight:700,
+                            cursor:(allSaved || libBulkProgress) ? 'default' : 'pointer',
+                            opacity:(allSaved || libBulkProgress) ? 0.7 : 1,
+                          }}
+                        >
+                          {libBulkProgress
+                            ? `📚 Saving ${libBulkProgress.done}/${libBulkProgress.total}…`
+                            : allSaved ? '✅ All in Library'
+                            : `📚 Save All to Library (${planogramRows.length - savedLibCount})`}
+                        </button>
+                        {libBulkProgress && (
+                          <div style={{ background:'#ede9fe', borderRadius:99, height:4, width:'100%', overflow:'hidden' }}>
+                            <div style={{
+                              background:'#7c3aed', height:'100%', borderRadius:99,
+                              width:`${Math.round((libBulkProgress.done / libBulkProgress.total) * 100)}%`,
+                              transition:'width 0.3s ease',
+                            }} />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

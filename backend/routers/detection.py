@@ -1184,9 +1184,16 @@ def _pipeline_inventory_upsert(enriched: list, db: Session) -> list:
                 "sku":      d.get("sku") or "",
                 "brand":    d.get("brand") or "",
                 "count":    0,
+                "location": "",
             }
         # Each YOLO detection = 1 visible facing; depth = units behind it
         groups[key]["count"] += int(d.get("depth") or 1)
+        # Capture grid position from the first detection of this product
+        if not groups[key]["location"]:
+            row = d.get("grid_row")
+            col = d.get("grid_col")
+            if row is not None and col is not None:
+                groups[key]["location"] = f"R{row}C{col}"
 
     saves = []
     for pg in groups.values():
@@ -1196,13 +1203,16 @@ def _pipeline_inventory_upsert(enriched: list, db: Session) -> list:
                 Product.name.ilike(pg["name"])
             ).first()
 
+            loc = pg.get("location") or ""
             if existing and existing.inventory:
                 existing.inventory.quantity    = pg["count"]
                 existing.inventory.last_updated = datetime.utcnow()
+                if loc:
+                    existing.inventory.shelf_location = loc
                 saves.append({"name": pg["name"], "quantity": pg["count"], "status": "updated"})
             elif existing and not existing.inventory:
                 inv = Inventory(product_id=existing.id, quantity=pg["count"],
-                                last_updated=datetime.utcnow())
+                                shelf_location=loc, last_updated=datetime.utcnow())
                 db.add(inv)
                 saves.append({"name": pg["name"], "quantity": pg["count"], "status": "inv_created"})
             else:
@@ -1216,7 +1226,7 @@ def _pipeline_inventory_upsert(enriched: list, db: Session) -> list:
                 db.add(new_prod)
                 db.flush()
                 db.add(Inventory(product_id=new_prod.id, quantity=pg["count"],
-                                 last_updated=datetime.utcnow()))
+                                 shelf_location=loc, last_updated=datetime.utcnow()))
                 saves.append({"name": pg["name"], "quantity": pg["count"], "status": "created"})
         except Exception as exc:
             logger.warning(f"Auto-inventory upsert failed for '{pg['name']}': {exc}")

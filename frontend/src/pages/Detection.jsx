@@ -749,6 +749,7 @@ export default function Detection() {
   const [compliance,      setCompliance]      = useState(null); // from pipeline response
   const [inventorySaves,  setInventorySaves]  = useState(null); // auto-saved products after pipeline
   const [enrichedEdits,   setEnrichedEdits]   = useState({}); // {detectionIndex: {name, category}}
+  const [catGroupEdits,   setCatGroupEdits]   = useState({}); // {catName: {newName, _editing}}
   const [progress,      setProgress]      = useState(null);
   const inputRef       = useRef();
   const mobileInputRef = useRef();
@@ -768,7 +769,7 @@ export default function Detection() {
     if (!file.type.startsWith('image/')) { setError('Please upload an image file.'); return; }
     setError('');
     setResult(null); setGroups(null); setSavedNames({}); setSavedToLibrary({});
-    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null); setEnrichedEdits({}); setLibBulkProgress(null);
+    setProgress(null); setEnriched(null); setPipelineStats(null); setPipelineStage(0); setCompliance(null); setLibSaveState({}); setInventorySaves(null); setEnrichedEdits({}); setCatGroupEdits({}); setLibBulkProgress(null);
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
@@ -1361,18 +1362,73 @@ export default function Detection() {
                 )}
 
                 {/* Category-grouped product table */}
-                {Object.entries(catMap).map(([cat, products]) => (
+                {Object.entries(catMap).map(([cat, products]) => {
+                  const grpEdit = catGroupEdits[cat];
+                  const isEditingGroup = grpEdit?._editing;
+
+                  // Apply group rename: update all detections in this category
+                  const applyGroupRename = (newCat) => {
+                    const allIdxs = Object.values(products).flatMap(p => p.detections.map(d => d._i));
+                    setEnrichedEdits(prev => ({
+                      ...prev,
+                      ...Object.fromEntries(allIdxs.map(i => [i, {
+                        ...(prev[i] || {}),
+                        category: newCat,
+                      }])),
+                    }));
+                    setCatGroupEdits(prev => ({ ...prev, [cat]: { newName: newCat, _editing: false } }));
+                  };
+
+                  return (
                   <div key={cat} style={{ marginBottom:18 }}>
-                    {/* Category header */}
-                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                      <span style={{ background:'#ede9fe', color:'#6d28d9', borderRadius:99,
-                        padding:'4px 14px', fontSize:12, fontWeight:700 }}>
-                        {cat}
-                      </span>
-                      <span style={{ fontSize:12, color:'#64748b' }}>
-                        {Object.keys(products).length} product{Object.keys(products).length !== 1 ? 's' : ''} · {' '}
-                        {Object.values(products).reduce((s, p) => s + p.qty, 0)} units total
-                      </span>
+                    {/* Category header with group rename */}
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8, flexWrap:'wrap' }}>
+                      {isEditingGroup ? (
+                        <>
+                          <input
+                            autoFocus
+                            defaultValue={grpEdit.newName ?? cat}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') applyGroupRename(e.target.value.trim() || cat);
+                              if (e.key === 'Escape') setCatGroupEdits(prev => ({ ...prev, [cat]: { _editing: false } }));
+                            }}
+                            style={{ fontSize:12, padding:'3px 10px', borderRadius:99,
+                              border:'2px solid #a78bfa', outline:'none', fontWeight:700,
+                              color:'#6d28d9', minWidth:140 }}
+                          />
+                          <button
+                            onClick={e => applyGroupRename(e.target.closest('div').querySelector('input').value.trim() || cat)}
+                            style={{ fontSize:11, padding:'3px 10px', borderRadius:99, border:'none',
+                              background:'#6d28d9', color:'#fff', cursor:'pointer', fontWeight:600 }}>
+                            Apply to all
+                          </button>
+                          <button
+                            onClick={() => setCatGroupEdits(prev => ({ ...prev, [cat]: { _editing: false } }))}
+                            style={{ fontSize:11, padding:'3px 8px', borderRadius:99, border:'none',
+                              background:'#e2e8f0', color:'#475569', cursor:'pointer' }}>
+                            ✕
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ background:'#ede9fe', color:'#6d28d9', borderRadius:99,
+                            padding:'4px 14px', fontSize:12, fontWeight:700 }}>
+                            {cat}
+                          </span>
+                          <button
+                            title="Rename this category for all products in the group"
+                            onClick={() => setCatGroupEdits(prev => ({ ...prev, [cat]: { newName: cat, _editing: true } }))}
+                            style={{ fontSize:10, background:'#ede9fe', border:'1px solid #c4b5fd',
+                              borderRadius:99, padding:'2px 8px', cursor:'pointer',
+                              color:'#7c3aed', fontWeight:600 }}>
+                            ✏️ rename group
+                          </button>
+                          <span style={{ fontSize:12, color:'#64748b' }}>
+                            {Object.keys(products).length} product{Object.keys(products).length !== 1 ? 's' : ''} · {' '}
+                            {Object.values(products).reduce((s, p) => s + p.qty, 0)} units total
+                          </span>
+                        </>
+                      )}
                     </div>
 
                     <div style={{ overflowX:'auto' }}>
@@ -1490,7 +1546,8 @@ export default function Detection() {
                       </table>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             );
           })()}

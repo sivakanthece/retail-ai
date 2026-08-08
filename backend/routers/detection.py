@@ -424,6 +424,19 @@ def _infer_category_from_name(name: str) -> str | None:
     Used to fix CLIP's unreliable category guesses on small bottle/can crops.
     """
     n = name.lower()
+
+    # ── Priority guards ────────────────────────────────────────────────────
+    # Cadbury "Dairy Milk" is chocolate, not a dairy drink — check this first
+    if "dairy milk" in n and any(k in n for k in ["cadbury", "chocolate", "bar", "dairy milk"]):
+        return "Candy & Chocolate"
+
+    # Products with clear beverage/drink keywords should never be Baby Products
+    _is_beverage = any(k in n for k in [
+        "drink", "juice", "water", "lemonade", "squash", "smoothie", "ribena",
+        "coca-cola", "coke", "sprite", "fanta", "pepsi", "soda", "lager",
+        "beer", "wine", "milk", "dairy", "kombucha", "energy drink",
+    ])
+
     # Soda / carbonated soft drinks
     if any(k in n for k in [
         "coca-cola", "coca cola", "coke", "sprite", "fanta", "pepsi", "7up",
@@ -433,12 +446,13 @@ def _infer_category_from_name(name: str) -> str | None:
         "lilt", "tango", "oasis", "big red",
     ]):
         return "Soda & Energy Drinks"
-    # Water & Juice
+    # Water & Juice (also catches kids' drinks / fruit drinks)
     if any(k in n for k in [
         "water", "juice", "lemonade", "squash", "smoothie", "ribena",
         "innocent", "tropicana", "fentimans", "rose lemonade", "elderflower",
         "craft lemonade", "apple juice", "orange juice", "coconut water",
-        "kombucha", "san pellegrino",
+        "kombucha", "san pellegrino", "kids drink", "fruit drink",
+        "fruit juice", "capri sun", "capri-sun", "kool-aid",
     ]):
         return "Water & Juice"
     # Beer
@@ -448,18 +462,19 @@ def _infer_category_from_name(name: str) -> str | None:
         "ipa", "pale ale", "craft beer",
     ]):
         return "Beer"
-    # Wine & spirits
+    # Dairy — check BEFORE wine so "dairy" / "milk" never falls through to Wine & Spirits
+    if any(k in n for k in [
+        "milk", "dairy", "cream", "butter", "buttermilk", "oat milk",
+        "almond milk", "soy milk", "plant milk", "semi-skimmed",
+    ]):
+        return "Milk & Dairy Drinks"
+    # Wine & spirits (only after dairy guard above)
     if any(k in n for k in [
         "wine", "whiskey", "whisky", "vodka", "gin", "rum", "tequila",
         "champagne", "prosecco", "rosé", "brandy", "bourbon", "scotch",
         "jack daniel", "absolut", "smirnoff", "baileys", "kahlua",
     ]):
         return "Wine & Spirits"
-    # Dairy
-    if any(k in n for k in [
-        "milk", "dairy", "cream", "butter", "buttermilk",
-    ]):
-        return "Milk & Dairy Drinks"
     if any(k in n for k in ["yogurt", "yoghurt"]):
         return "Yogurt"
     if any(k in n for k in ["cheese", "cheddar", "mozzarella", "brie", "gouda"]):
@@ -510,7 +525,8 @@ def _infer_category_from_name(name: str) -> str | None:
         return "Health & Vitamins"
     if any(k in n for k in ["dog food", "cat food", "pet food", "kibble", "pedigree", "whiskas"]):
         return "Pet Food"
-    if any(k in n for k in ["nappy", "diaper", "baby food", "formula", "infant"]):
+    # Baby Products — only if NOT a general beverage/drink product
+    if not _is_beverage and any(k in n for k in ["nappy", "diaper", "baby food", "formula", "infant", "baby wipe"]):
         return "Baby Products"
     return None
 

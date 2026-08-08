@@ -1,0 +1,97 @@
+shelf_id,shelf_name,row,col,product_name,brand,sku,category,facings,unit_price_usd,planogram_notes,image_match_status,image_confidence,image_observation
+SHELF-BEV-01,Beverages Soft Drinks,1,1,Coca-Cola cans - assorted variants,Coca-Cola,,Soda,12,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Large Coca-Cola block at far left; multiple red/pink/white can variants visible.
+SHELF-BEV-01,Beverages Soft Drinks,1,2,Schweppes cans - pink/red variant,Schweppes,,Mixers & Tonic,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,medium,Pink/red Schweppes-branded can block left-center; exact flavor unreadable.
+SHELF-BEV-01,Beverages Soft Drinks,1,3,Unidentified blue/yellow canned mixer,Unknown,,Mixers & Tonic,10,,Image-derived correction; left-to-right visual block order.,corrected_from_image,low,Tall blue/yellow cans in center; brand/flavor not reliably legible.
+SHELF-BEV-01,Beverages Soft Drinks,1,4,Dr Pepper cans - assorted variants,Dr Pepper,,Soda,8,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Dr Pepper block center-right; standard and pink/red variants visible.
+SHELF-BEV-01,Beverages Soft Drinks,1,5,Orange beverage glass bottles,Unknown,,Soft Drinks,5,,Image-derived correction; left-to-right visual block order.,corrected_from_image,low,Orange liquid in clear glass bottles; label not reliably legible.
+SHELF-BEV-01,Beverages Soft Drinks,1,6,Dark beverage glass bottles,Unknown,,Soft Drinks,5,,Image-derived correction; left-to-right visual block order.,corrected_from_image,low,Dark liquid in clear glass bottles with white labels; brand not reliably legible.
+SHELF-BEV-01,Beverages Soft Drinks,2,1,Fanta cans - assorted flavors,Fanta,,Soda,18,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,"Large Fanta block on left; orange, grape/purple, pink, blue/tropical and yellow variants visible."
+SHELF-BEV-01,Beverages Soft Drinks,2,2,Fanta tall cans - assorted flavors,Fanta,,Soda,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Tall Fanta cans immediately left of Sprite block.
+SHELF-BEV-01,Beverages Soft Drinks,2,3,Schweppes tall cans - citrus variants,Schweppes,,Mixers & Tonic,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,medium,Blue/turquoise tall cans with yellow diagonal branding; exact variants unclear.
+SHELF-BEV-01,Beverages Soft Drinks,2,4,Sprite cans,Sprite,,Soda,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Green Sprite can block in center.
+SHELF-BEV-01,Beverages Soft Drinks,2,5,Chupa Chups cans - assorted flavors,Chupa Chups,,Soda,10,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Multiple Chupa Chups cans center-right; several fruit flavors visible.
+SHELF-BEV-01,Beverages Soft Drinks,2,6,Pink/red glass lemonade bottles,Unknown,,Lemonade,8,,Image-derived correction; left-to-right visual block order.,corrected_from_image,medium,Pink/red glass bottle block at far right; labels too soft for reliable brand/variant extraction.
+SHELF-BEV-01,Beverages Soft Drinks,3,1,Fanta Orange PET bottles,Fanta,,Soda,8,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Orange Fanta PET bottle block at far left.
+SHELF-BEV-01,Beverages Soft Drinks,3,2,Sprite PET bottles,Sprite,,Soda,10,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Clear Sprite PET bottle block left-center.
+SHELF-BEV-01,Beverages Soft Drinks,3,3,Pink-label cola/soft drink PET bottles,Unknown,,Soft Drinks,5,,Image-derived correction; left-to-right visual block order.,corrected_from_image,low,Dark liquid PET bottles with pink/yellow labels; exact brand unreadable.
+SHELF-BEV-01,Beverages Soft Drinks,3,4,Schweppes dark mixer PET bottles,Schweppes,,Mixers & Tonic,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,medium,Dark-liquid PET bottles with green/yellow Schweppes-style labels.
+SHELF-BEV-01,Beverages Soft Drinks,3,5,Schweppes clear tonic/lemon PET bottles,Schweppes,,Mixers & Tonic,3,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Clear PET bottles with yellow Schweppes labels.
+SHELF-BEV-01,Beverages Soft Drinks,3,6,Fentimans Rose Lemonade glass bottles,Fentimans,,Lemonade,6,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Pink glass bottles at far right; Rose Lemonade text visible.
+SHELF-BEV-01,Beverages Soft Drinks,4,1,Coca-Cola glass bottles - assorted variants,Coca-Cola,,Soda,6,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Glass Coca-Cola bottles at far left; cream and pink labels indicate multiple variants.
+SHELF-BEV-01,Beverages Soft Drinks,4,2,Sprite large PET bottles,Sprite,,Soda,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Large clear PET bottles with green Sprite labels.
+SHELF-BEV-01,Beverages Soft Drinks,4,3,Schweppes clear mixer bottles,Schweppes,,Mixers & Tonic,3,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Large clear bottles with yellow Schweppes labels.
+SHELF-BEV-01,Beverages Soft Drinks,4,4,Schweppes pink mixer bottles,Schweppes,,Mixers & Tonic,5,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Large pink-liquid bottles with yellow Schweppes labels.
+SHELF-BEV-01,Beverages Soft Drinks,4,5,Schweppes orange mixer bottles,Schweppes,,Mixers & Tonic,2,,Image-derived correction; left-to-right visual block order.,corrected_from_image,high,Large orange-liquid bottles with yellow Schweppes labels.
+SHELF-BEV-01,Beverages Soft Drinks,4,6,O&C Craft clear bottled beverage,O&C Craft,,Craft Soft Drinks,4,,Image-derived correction; left-to-right visual block order.,corrected_from_image,medium,Clear glass bottles at far right with O&C CRAFT-style label; exact variant unreadable.
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,1,DanActive Strawberry,Danone,DANACT-STR-93,Dairy & Yogurt,4,1.29,Small probiotic drinks top left,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,2,DanActive Blueberry,Danone,DANACT-BLU-93,Dairy & Yogurt,4,1.29,Blueberry probiotic drink,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,3,Yoplait Go-Gurt Strawberry,Yoplait,YOPLAIT-GOGURT-STR,Dairy & Yogurt,3,0.99,Kids yogurt tubes top shelf,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,4,Yoplait Go-Gurt Mixed Berry,Yoplait,YOPLAIT-GOGURT-MIX,Dairy & Yogurt,3,0.99,Mixed berry yogurt tubes,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,5,Horizon Organic Whole Milk,Horizon,HOR-WHOLE-32,Dairy & Milk,2,4.49,Organic white carton top right,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,6,Horizon Organic Milk,Horizon,HOR-2PCT-32,Dairy & Milk,2,4.29,Organic 2% milk carton,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,7,Almond Breeze Original,Blue Diamond,ALM-ORIG-32,Plant-Based Milk,2,3.99,Almond milk blue carton top right,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,1,8,Almond Breeze Vanilla,Blue Diamond,ALM-VAN-32,Plant-Based Milk,2,3.99,Vanilla almond milk carton,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,1,Silk Oat Milk Original,Silk,SILK-OAT-ORIG-52,Plant-Based Milk,2,4.99,Large Silk oat milk second shelf left,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,2,Silk Oat Milk Vanilla,Silk,SILK-OAT-VAN-52,Plant-Based Milk,2,4.99,Vanilla oat milk large,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,3,Fairlife Whole Milk,Fairlife,FAIR-WHOLE-52,Dairy & Milk,2,5.49,Ultra-filtered whole milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,4,Fairlife Reduced Fat Milk,Fairlife,FAIR-2PCT-52,Dairy & Milk,2,5.49,Ultra-filtered 2% milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,5,Almond Breeze Chocolate,Blue Diamond,ALM-CHOC-32,Plant-Based Milk,2,3.99,Chocolate almond milk brown carton,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,6,Almond Breeze Unsweetened,Blue Diamond,ALM-UNSW-32,Plant-Based Milk,2,3.99,Unsweetened almond milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,7,Almond Breeze Vanilla Unsweetened,Blue Diamond,ALM-VAN-UNSW-32,Plant-Based Milk,2,3.99,Vanilla unsweetened almond milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,2,8,Good Karma Flaxmilk,Good Karma,GK-FLAX-ORIG-32,Plant-Based Milk,2,4.29,Flax milk right side second shelf,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,1,Silk Almond Milk Original,Silk,SILK-ALM-ORIG-64,Plant-Based Milk,2,5.49,Large Silk almond milk third shelf,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,2,Silk Almond Milk Vanilla,Silk,SILK-ALM-VAN-64,Plant-Based Milk,2,5.49,Large vanilla Silk almond,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,3,Oatly Oat Milk,Oatly,OATLY-ORIG-64,Plant-Based Milk,2,5.99,Swedish oat milk large carton,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,4,Oatly Barista,Oatly,OATLY-BAR-32,Plant-Based Milk,2,5.99,Barista oat milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,5,Almond Breeze Large Original,Blue Diamond,ALM-ORIG-64,Plant-Based Milk,2,5.29,Large almond breeze center,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,6,Almond Breeze Large Vanilla,Blue Diamond,ALM-VAN-64,Plant-Based Milk,2,5.29,Large vanilla almond breeze,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,7,Almond Breeze Large Unsweetened,Blue Diamond,ALM-UNSW-64,Plant-Based Milk,2,5.29,Large unsweetened almond breeze,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,3,8,Ripple Pea Milk,Ripple,RIP-ORIG-48,Plant-Based Milk,2,5.99,Pea protein milk far right,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,1,Silk Soy Milk Original,Silk,SILK-SOY-ORIG-64,Plant-Based Milk,2,4.49,Soy milk bottom shelf left,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,2,Silk Soy Milk Vanilla,Silk,SILK-SOY-VAN-64,Plant-Based Milk,2,4.49,Vanilla soy milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,3,Silk Coconut Milk,Silk,SILK-COC-ORIG-64,Plant-Based Milk,2,4.79,Coconut milk carton bottom,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,4,Good Karma Oat Milk,Good Karma,GK-OAT-ORIG-32,Plant-Based Milk,2,4.49,Good Karma oat milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,5,Califia Oat Milk,Califia,CAL-OAT-48,Plant-Based Milk,2,5.49,Colorful Califia bottle bottom,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,6,Califia Almond Milk,Califia,CAL-ALM-48,Plant-Based Milk,2,5.49,Califia almond milk bottle,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,7,Ripple Pea Milk Vanilla,Ripple,RIP-VAN-48,Plant-Based Milk,2,5.99,Vanilla pea milk,not_reviewed,,
+SHELF-DAIRY-01,Dairy & Milk Alternatives,4,8,Lactaid Whole Milk,Lactaid,LACT-WHOLE-96,Dairy & Milk,2,6.99,Lactose-free whole milk far right bottom,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,1,Doritos Nacho Cheese,Doritos,DOR-NACHO-200,Chips & Crisps,2,3.49,Colorful bags very top left,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,2,Doritos Cool Ranch,Doritos,DOR-RANCH-200,Chips & Crisps,2,3.49,Blue Doritos bag top row,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,3,Lays Classic,Lay's,LAYS-CLS-200,Chips & Crisps,2,2.99,Yellow Lay's bag top shelf,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,4,Lays Barbecue,Lay's,LAYS-BBQ-200,Chips & Crisps,2,2.99,Red Lay's BBQ bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,5,Cheetos Crunchy,Cheetos,CHEE-CRUNCH-200,Chips & Crisps,2,3.29,Orange Cheetos bag top center,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,6,Cheetos Puffs,Cheetos,CHEE-PUFFS-200,Chips & Crisps,2,3.29,Orange puffs bag top right,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,7,Pringles Original,Pringles,PRING-ORIG-150,Chips & Crisps,2,2.79,Green Pringles can top right,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,1,8,Pringles Sour Cream,Pringles,PRING-SOUR-150,Chips & Crisps,2,2.79,Sour cream Pringles top far right,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,1,Lays Wavy,Lay's,LAYS-WAVY-200,Chips & Crisps,3,3.29,Wavy Lay's second shelf left,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,2,Lays Sour Cream Onion,Lay's,LAYS-SCO-200,Chips & Crisps,3,3.29,Sour cream onion Lay's,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,3,Ruffles Original,Ruffles,RUFF-ORIG-200,Chips & Crisps,2,3.29,Ruffles ridged chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,4,Ruffles Cheddar,Ruffles,RUFF-CHED-200,Chips & Crisps,2,3.29,Cheddar Ruffles bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,5,Tostitos Original,Tostitos,TOST-ORIG-300,Chips & Crisps,2,3.99,Tortilla chips center second shelf,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,6,Tostitos Hint of Lime,Tostitos,TOST-LIME-300,Chips & Crisps,2,3.99,Lime tortilla chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,7,Fritos Original,Fritos,FRIT-ORIG-200,Chips & Crisps,2,2.99,Corn chips right second shelf,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,2,8,Fritos Chili Cheese,Fritos,FRIT-CHIL-200,Chips & Crisps,2,2.99,Chili cheese corn chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,1,Funyuns Onion Rings,Funyuns,FUN-ORIG-160,Chips & Crisps,2,2.49,Onion ring snacks third shelf left,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,2,Smartfood White Cheddar Popcorn,Smartfood,SMART-WCHD-200,Popcorn & Puffs,2,3.49,White cheddar popcorn,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,3,Corn Nuts Original,Corn Nuts,CORNN-ORIG-170,Chips & Crisps,3,2.29,Hard corn snacks pink bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,4,Corn Nuts Ranch,Corn Nuts,CORNN-RNCH-170,Chips & Crisps,3,2.29,Ranch corn nuts blue bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,5,Takis Fuego,Takis,TAKIS-FUG-200,Chips & Crisps,2,3.49,Hot rolled tortilla chips red,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,6,Takis Blue Heat,Takis,TAKIS-BLUE-200,Chips & Crisps,2,3.49,Blue hot tortilla chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,7,Churritos Chili,Churritos,CHUR-CHIL-100,Chips & Crisps,3,1.99,Small churro chips chili flavor,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,3,8,Chicharrones Pork Rinds,Baken-Ets,BAKEN-ORIG-100,Chips & Crisps,3,2.49,Pork rinds right third shelf,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,1,Doritos Flamin Hot,Doritos,DOR-FLAMHOT-200,Chips & Crisps,2,3.49,Flamin Hot Doritos fourth shelf left,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,2,Cheetos Flamin Hot,Cheetos,CHEE-FLAMHOT-200,Chips & Crisps,2,3.49,Flamin Hot Cheetos,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,3,Lays Flamin Hot,Lay's,LAYS-FLAMHOT-200,Chips & Crisps,2,3.29,Flamin Hot Lay's chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,4,Churritos Chile Limon,Churritos,CHUR-CHILIM-100,Chips & Crisps,3,1.99,Chile lemon churritos,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,5,Chicharrones BBQ,Baken-Ets,BAKEN-BBQ-100,Chips & Crisps,3,2.49,BBQ pork rinds,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,6,Mission Tortilla Strips,Mission,MISS-TORT-300,Chips & Crisps,2,3.29,Tortilla strips yellow bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,7,SunChips Harvest Cheddar,SunChips,SUN-HCHD-200,Chips & Crisps,2,3.49,Multigrain SunChips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,4,8,Popcorners White Cheddar,Popcorners,POPC-WCHD-140,Popcorn & Puffs,2,3.79,Triangular popcorn chips right,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,1,Lays Classic Family Size,Lay's,LAYS-CLS-400,Chips & Crisps,2,5.49,Large bags bottom shelf left,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,2,Doritos Nacho Family Size,Doritos,DOR-NACHO-400,Chips & Crisps,2,5.99,Large Doritos bag bottom,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,3,Cheetos Crunchy Family Size,Cheetos,CHEE-CRUNCH-400,Chips & Crisps,2,5.79,Large Cheetos bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,4,Tostitos Family Size,Tostitos,TOST-ORIG-500,Chips & Crisps,2,6.49,Large tortilla chips bag,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,5,Ruffles Family Size,Ruffles,RUFF-ORIG-400,Chips & Crisps,2,5.99,Large Ruffles ridged chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,6,Fritos Family Size,Fritos,FRIT-ORIG-400,Chips & Crisps,2,5.49,Large Fritos corn chips,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,7,Funyuns Family Size,Funyuns,FUN-ORIG-300,Chips & Crisps,2,4.99,Large onion ring snacks,not_reviewed,,
+SHELF-SNACKS-01,Snacks & Crisps Aisle,5,8,Pringles Variety Pack,Pringles,PRING-VAR-6PK,Chips & Crisps,2,7.99,Pringles multipack bottom right,not_reviewed,,

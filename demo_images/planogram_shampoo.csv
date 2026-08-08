@@ -1,0 +1,41 @@
+shelf_id,shelf_name,row,col,product_name,brand,sku,category,facings,unit_price_usd,planogram_notes,depth
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,1,TRESemmé Hairfall Defense Shampoo 340ml,TRESemmé,TRES-HFD-340,Hair Care,1,1.31,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,2,Nyle Dryness Hydration Shampoo 400ml,Nyle,NYLE-DH-400,Hair Care,1,1.38,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,3,Nyle Dryness Hydration Shampoo 400ml,Nyle,NYLE-DH-400,Hair Care,1,1.38,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,4,Kesh King Gold Anti-Hairfall Shampoo 340ml,Emami,EMAMI-KKG-340,Hair Care,1,1.01,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,5,Kesh King Gold Anti-Hairfall Shampoo 340ml,Emami,EMAMI-KKG-340,Hair Care,1,1.01,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,6,Head & Shoulders 2in1 Smooth & Silky 340ml,Head & Shoulders,HS-2IN1-SS-340,Hair Care,1,1.33,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,7,Head & Shoulders 2in1 Smooth & Silky 340ml,Head & Shoulders,HS-2IN1-SS-340,Hair Care,1,1.33,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,8,Head & Shoulders Neem Shampoo 340ml,Head & Shoulders,HS-NEEM-340,Hair Care,1,1.33,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,9,Head & Shoulders Cool Menthol Shampoo 340ml,Head & Shoulders,HS-COOL-340,Hair Care,1,1.33,top shelf — eye-level,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,1,10,Head & Shoulders Anti-Hairfall Shampoo 340ml,Head & Shoulders,HS-AHF-340,Hair Care,1,1.33,"top shelf — eye-level, partially cut off",1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,1,Dove Intense Repair Shampoo 340ml,Dove,DOVE-IR-340,Hair Care,1,1.31,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,2,Dove Intense Repair Shampoo 340ml,Dove,DOVE-IR-340,Hair Care,1,1.31,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,3,Dove Hairfall Rescue Shampoo 340ml,Dove,DOVE-HFR-340,Hair Care,1,1.31,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,4,Dove Dryness Care Shampoo 340ml,Dove,DOVE-DC-340,Hair Care,1,1.31,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,5,Dove Dryness Care Shampoo 340ml,Dove,DOVE-DC-340,Hair Care,1,1.31,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,6,Pantene Deep Repair Shampoo 340ml,Pantene,PAN-DR-340,Hair Care,1,1.33,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,7,Pantene Deep Repair Shampoo 340ml,Pantene,PAN-DR-340,Hair Care,1,1.33,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,8,Pantene Lively Clean Shampoo 340ml,Pantene,PAN-LC-340,Hair Care,1,1.33,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,9,Pantene Lively Clean Shampoo 340ml,Pantene,PAN-LC-340,Hair Care,1,1.33,second shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,2,10,Biotique Green Apple Shampoo 180ml,Biotique,BIO-GA-180,Hair Care,1,1.2,second shelf — partially cut off,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,1,TRESemmé Hairfall Defense Shampoo 340ml,TRESemmé,TRES-HFD-340,Hair Care,1,1.31,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,2,TRESemmé Hairfall Defense Shampoo 340ml,TRESemmé,TRES-HFD-340,Hair Care,1,1.31,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,3,Dove Dandruff Care Shampoo 340ml,Dove,DOVE-DDC-340,Hair Care,1,1.31,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,4,Dove Dandruff Care Shampoo 340ml,Dove,DOVE-DDC-340,Hair Care,1,1.31,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,5,Dove Intense Repair Shampoo 340ml,Dove,DOVE-IR-340,Hair Care,1,1.31,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,6,Head & Shoulders 2in1 Active Fresh 340ml,Head & Shoulders,HS-2IN1-AF-340,Hair Care,1,1.33,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,7,Head & Shoulders Cool Menthol Shampoo 340ml,Head & Shoulders,HS-COOL-340,Hair Care,1,1.33,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,8,Head & Shoulders Cool Menthol Shampoo 340ml,Head & Shoulders,HS-COOL-340,Hair Care,1,1.33,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,9,Head & Shoulders Cool Menthol Shampoo 340ml,Head & Shoulders,HS-COOL-340,Hair Care,1,1.33,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,3,10,Head & Shoulders Neem Shampoo 340ml,Head & Shoulders,HS-NEEM-340,Hair Care,1,1.33,third shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,1,Himalaya Gentle Daily Care Shampoo 340ml,Himalaya,HIM-GDC-340,Hair Care,1,1.5,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,2,Himalaya Anti-Hair Fall Shampoo 340ml,Himalaya,HIM-AHF-340,Hair Care,1,1.5,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,3,Himalaya Anti-Hair Fall Shampoo 340ml,Himalaya,HIM-AHF-340,Hair Care,1,1.5,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,4,Himalaya Anti-Dandruff Shampoo 340ml,Himalaya,HIM-ADD-340,Hair Care,1,1.5,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,5,Meera Hairfall Care Shampoo 340ml,Meera,MEERA-HFC-340,Hair Care,1,1.75,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,6,Meera Hairfall Care Shampoo 340ml,Meera,MEERA-HFC-340,Hair Care,1,1.75,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,7,Meera Anti-Hairfall Shampoo 440ml,Meera,MEERA-AHF-440,Hair Care,1,2.1,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,8,Meera Anti-Hairfall Shampoo 440ml,Meera,MEERA-AHF-440,Hair Care,1,2.1,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,9,L'Oreal Fall Resist 3X Shampoo 340ml,L'Oreal,LOREAL-FR3X-340,Hair Care,1,2.5,fourth shelf,1
+SHELF-HAIR-01,Hair Care & Shampoo Aisle,4,10,Biotique Bio Kelp Shampoo 200ml,Biotique,BIO-KELP-200,Hair Care,1,1.2,fourth shelf — right edge,1
